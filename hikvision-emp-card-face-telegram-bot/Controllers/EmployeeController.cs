@@ -222,7 +222,7 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
             }
 
             string cardReaderNo = "1";
-            string cardNo = "123";
+            string cardNo = "9771";
 
             CHCNetSDKForFace.NET_DVR_FACE_COND struCond = new CHCNetSDKForFace.NET_DVR_FACE_COND();
             struCond.init();

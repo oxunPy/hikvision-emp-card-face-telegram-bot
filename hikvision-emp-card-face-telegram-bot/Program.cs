@@ -2,11 +2,15 @@ using CardManagement;
 using FaceManagement;
 using hikvision_emp_card_face_telegram_bot;
 using hikvision_emp_card_face_telegram_bot.bot;
+using hikvision_emp_card_face_telegram_bot.Bot;
 using hikvision_emp_card_face_telegram_bot.Data;
 using hikvision_emp_card_face_telegram_bot.Interfaces;
 using hikvision_emp_card_face_telegram_bot.Repository;
+using hikvision_emp_card_face_telegram_bot.Service;
+using hikvision_emp_card_face_telegram_bot.Service.Impl;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,9 +26,28 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // repositories
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IDishRepository, DishRepository>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<ILunchMenuRepository, LunchMenuRepository>();
+builder.Services.AddScoped<ISelectedMenuRepository, SelectedMenuRepository>();
+builder.Services.AddScoped<ITerminalConfigurationRepository, TerminalConfigurationRepository>();
 
-// Register the TelegramService
+// services
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IDishService, DishService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<ILunchMenuService, LunchMenuService>();
+builder.Services.AddScoped<ISelectedMenuService, SelectedMenuService>();
+builder.Services.AddScoped<ITerminalConfigurationService, TerminalConfigurationService>();
+
+// Register the bot
+builder.Services.AddSingleton<TelegramBotClient>(provider =>
+{ 
+    string botToken = builder.Configuration["TelegramBot:BotToken"];
+    return new TelegramBotClient(botToken);
+});
 builder.Services.AddSingleton<TelegramBotService>();
+builder.Services.AddSingleton<CallbackHandler>();
+builder.Services.AddSingleton<MessageHandler>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

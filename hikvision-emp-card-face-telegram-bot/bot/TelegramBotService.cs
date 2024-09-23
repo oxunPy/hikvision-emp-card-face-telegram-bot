@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using hikvision_emp_card_face_telegram_bot.Bot;
+using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -9,13 +10,16 @@ namespace hikvision_emp_card_face_telegram_bot.bot
     {
         private readonly TelegramBotClient _botClient;
         private readonly ILogger<TelegramBotService> _logger;
+        private readonly CallbackHandler _callbackHandler;
+        private readonly MessageHandler _messageHandler;
 
-        public TelegramBotService(IConfiguration configuration, ILogger<TelegramBotService> logger)
+
+        public TelegramBotService(ILogger<TelegramBotService> logger, TelegramBotClient botClient, MessageHandler messageHandler, CallbackHandler callbackHandler)
         {
-            // Read the bot token from appsettings.json
-            string botToken = configuration["TelegramBot:BotToken"];
-            _botClient = new TelegramBotClient(botToken);
+            _botClient = botClient;
             _logger = logger;
+            _messageHandler = messageHandler;
+            _callbackHandler = callbackHandler;
         }
 
         public async Task StartBotAsync(CancellationToken cancellationToken)
@@ -43,8 +47,18 @@ namespace hikvision_emp_card_face_telegram_bot.bot
 
                 _logger.LogInformation($"Received a message from {chatId}: {messageText}");
 
+                if(update.CallbackQuery != null)
+                {
+                    await _callbackHandler.HandleCallbackQueryAsync(update.CallbackQuery);
+                }
+
+                if(update.Message != null)
+                {
+                    await _messageHandler.HandleMessageAsync(update.Message);
+                }
+
                 // Example: Echo the received message back to the user
-                await botClient.SendTextMessageAsync(chatId, $"You said: {messageText}", cancellationToken: cancellationToken);
+                // await botClient.SendTextMessageAsync(chatId, $"You said: {messageText}", cancellationToken: cancellationToken);
             }
         }
 

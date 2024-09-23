@@ -1,6 +1,6 @@
 ﻿namespace hikvision_emp_card_face_telegram_bot.Service.Impl
 {
-    public class SelectedMenuService
+    public class SelectedMenuService : ISelectedMenuService
     {
     }
 }
