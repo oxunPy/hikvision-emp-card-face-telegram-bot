@@ -1,0 +1,1 @@
+开发包“库文件”目录下的HCNetSDK.dll、HCCore.dll、HCNetSDKCom文件夹、ssleay32.dll、libeay32.dll、hlog.dll、hpr.dll、zlib1.dll、log4cxx.properties等文件均拷贝到该文件夹下。

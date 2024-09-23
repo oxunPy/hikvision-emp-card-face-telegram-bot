@@ -1,0 +1,6 @@
+@hikvision_emp_card_face_telegram_bot_HostAddress = http://localhost:5122
+
+GET {{hikvision_emp_card_face_telegram_bot_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
