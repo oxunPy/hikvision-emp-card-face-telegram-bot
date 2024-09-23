@@ -61,6 +61,18 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SelectedMenuReport",
+                columns: table => new
+                {
+                    DishName = table.Column<string>(type: "text", nullable: true),
+                    Quantity = table.Column<int>(type: "integer", nullable: true),
+                    EmployeeNames = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TerminalConfigurations",
                 columns: table => new
                 {
@@ -107,7 +119,7 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     EmployeeId = table.Column<long>(type: "bigint", nullable: false),
-                    date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     DishId = table.Column<long>(type: "bigint", nullable: false),
                     DiscountPrice = table.Column<decimal>(type: "numeric", nullable: true),
                     DiscountPercent = table.Column<decimal>(type: "numeric", nullable: true)
@@ -150,6 +162,9 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
         {
             migrationBuilder.DropTable(
                 name: "LunchMenus");
+
+            migrationBuilder.DropTable(
+                name: "SelectedMenuReport");
 
             migrationBuilder.DropTable(
                 name: "SelectedMenus");

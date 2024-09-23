@@ -1,4 +1,5 @@
-﻿using hikvision_emp_card_face_telegram_bot.Entity;
+﻿using hikvision_emp_card_face_telegram_bot.Data.Report;
+using hikvision_emp_card_face_telegram_bot.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -9,7 +10,6 @@ namespace hikvision_emp_card_face_telegram_bot.Data
     {
 
         protected readonly IConfiguration _configuration;
-        // public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
         public DataContext(IConfiguration configuration)
         {
@@ -52,6 +52,9 @@ namespace hikvision_emp_card_face_telegram_bot.Data
                 .WithMany()
                 .HasForeignKey(s => s.EmployeeId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Configuring SelectedMenuReport as a query type (not mapped to a table)
+            modelBuilder.Entity<SelectedMenuReport>().HasNoKey().ToView(null); // This ensures it's not treated as a table
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)

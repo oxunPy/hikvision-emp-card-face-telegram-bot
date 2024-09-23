@@ -1,4 +1,5 @@
-﻿using hikvision_emp_card_face_telegram_bot.Entity;
+﻿using hikvision_emp_card_face_telegram_bot.Data.Report;
+using hikvision_emp_card_face_telegram_bot.Entity;
 
 namespace hikvision_emp_card_face_telegram_bot.Interfaces
 {
@@ -17,5 +18,7 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
         bool DeleteSelectedMenu(SelectedMenu selectedMenu);
 
         bool Save();
+
+        Task<ICollection<SelectedMenuReport?>> findTodaySelectedMenus(DateTime today);
     }
 }

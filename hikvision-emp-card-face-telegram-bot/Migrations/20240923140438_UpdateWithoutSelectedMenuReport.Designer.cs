@@ -13,8 +13,8 @@ using hikvision_emp_card_face_telegram_bot.Data;
 namespace hikvision_emp_card_face_telegram_bot.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240923053413_init")]
-    partial class init
+    [Migration("20240923140438_UpdateWithoutSelectedMenuReport")]
+    partial class UpdateWithoutSelectedMenuReport
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,22 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("hikvision_emp_card_face_telegram_bot.Data.Report.SelectedMenuReport", b =>
+                {
+                    b.Property<string>("DishName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EmployeeNames")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.ToTable((string)null);
+
+                    b.ToView(null, (string)null);
+                });
 
             modelBuilder.Entity("hikvision_emp_card_face_telegram_bot.Entity.Category", b =>
                 {
@@ -137,6 +153,9 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<decimal?>("DiscountPercent")
                         .HasColumnType("numeric");
 
@@ -148,9 +167,6 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
 
                     b.Property<long>("EmployeeId")
                         .HasColumnType("bigint");
-
-                    b.Property<DateTime>("date")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

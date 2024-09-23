@@ -15,7 +15,7 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
         [ForeignKey("EmployeeId")]
         public Employee? Employee { get; set; } 
 
-        public DateTime date { get; set; }
+        public DateTime Date { get; set; }
 
         public long DishId {  get; set; }
 
@@ -34,7 +34,7 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
             {
                 Id = this.Id,
                 EmployeeId = this.EmployeeId,
-                Date = this.date,
+                Date = this.Date,
                 DishId = this.DishId,
                 DiscountPercent = this.DiscountPercent,
                 DiscountPrice = this.DiscountPrice
