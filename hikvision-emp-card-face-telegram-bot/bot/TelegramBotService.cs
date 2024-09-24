@@ -40,12 +40,8 @@ namespace hikvision_emp_card_face_telegram_bot.bot
         // Handle updates (messages, callbacks, etc.)
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.Type == UpdateType.Message && update.Message?.Text != null)
+            if (update.Type == UpdateType.Message)
             {
-                var messageText = update.Message.Text;
-                var chatId = update.Message.Chat.Id;
-
-                _logger.LogInformation($"Received a message from {chatId}: {messageText}");
 
                 if(update.CallbackQuery != null)
                 {
@@ -54,11 +50,8 @@ namespace hikvision_emp_card_face_telegram_bot.bot
 
                 if(update.Message != null)
                 {
-                    await _messageHandler.HandleMessageAsync(update.Message);
+                    await _messageHandler.HandleMessageAsync(update.Message, cancellationToken);
                 }
-
-                // Example: Echo the received message back to the user
-                // await botClient.SendTextMessageAsync(chatId, $"You said: {messageText}", cancellationToken: cancellationToken);
             }
         }
 

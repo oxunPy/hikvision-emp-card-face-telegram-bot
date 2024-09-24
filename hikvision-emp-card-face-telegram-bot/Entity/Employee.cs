@@ -26,14 +26,9 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
 
         public string? TelegramChatId { get; set; }
 
-        public string? PinCode { get; set; }
         public Position? PositionEmp { get; set; }
 
-        public bool IsPinVerified { get; set; }
-
         public string? HikCardCode {  get; set; }
-        
-        public string? HikCardId { get; set; }
 
         public EmployeeDTO ToDTO()
         {
@@ -44,8 +39,7 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
                 LastName = this.LastName,
                 FaceImagePath = this.FaceImagePath,
                 TelegramChatId = this.TelegramChatId,
-                IsPinVerified = this.IsPinVerified,
-                Position = this.PositionEmp
+                PositionEmp = this.PositionEmp
             };
         }
     }

@@ -14,13 +14,8 @@ namespace hikvision_emp_card_face_telegram_bot.Dto
 
         public string? TelegramChatId { get; set; }
 
-        public bool IsPinVerified { get; set; }
-
-        public string? PinCode { get; set; }    
-        public Employee.Position? Position { get; set; }    
+        public Employee.Position? PositionEmp { get; set; }    
 
         public string? HikCardCode { get; set; }
-
-        public string? HikEmployeeId { get; set; }
     }
 }

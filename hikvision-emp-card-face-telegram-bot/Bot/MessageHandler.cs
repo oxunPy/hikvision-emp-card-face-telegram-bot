@@ -16,6 +16,8 @@ namespace hikvision_emp_card_face_telegram_bot.bot
         private readonly IServiceProvider _serviceProvider;
 
         private Dictionary<long, RegistrationStates> _botUserRegistrationStates;
+        
+
 
         public MessageHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, RegisterHandler registerHandler)
         {
@@ -26,40 +28,41 @@ namespace hikvision_emp_card_face_telegram_bot.bot
         }
 
 
-        public async Task HandleMessageAsync(Message message)
+        public async Task HandleMessageAsync(Message message, CancellationToken cancellationToken)
         {
-            if (message.Type != MessageType.Text)
-            {
-                await HandleUnsupportedMessageType(message);
-                return;
-            }
-
             var ChatID = message.Chat.Id;
-
-            if(_botUserRegistrationStates.ContainsKey(ChatID)) {
-                _registerHandler.HandleRegistrationAsync(message);
-                return;
-            }
 
             try
             {
-                switch (message.Text.ToLower())
+                if(message.Type == MessageType.Text)
                 {
-                    case "/start":
-                        await HandleStartCommand(message);
-                        break;
+                    switch (message.Text.ToLower())
+                    {
+                        case "/start":
+                            await HandleStartCommand(message);
+                            return;
 
-                    case "/inputMenu":
-                        await HandleInputMenu(message);
-                        break;
+                        case "/register":
+                            await HandleRegisterCommand(message);
+                            return;
 
-                    case "/register":
-                        await HandleRegisterCommand(message);
-                        break;
+                        case "/inputMenu":
+                            await HandleInputMenu(message);
+                            return;
+                    }
+                }
 
-                    default:
-                        await HandleUnknownMessage(message);
-                        break;
+                // handle registration states
+                if (_botUserRegistrationStates.ContainsKey(ChatID))
+                {
+                    _registerHandler.HandleRegistrationAsync(message, _botUserRegistrationStates[ChatID], cancellationToken);
+                    _botUserRegistrationStates[ChatID] = _botUserRegistrationStates[ChatID] + 1;
+
+                    if (_botUserRegistrationStates[ChatID].Equals(RegistrationStates.COMPLETED))
+                    {
+                        _botUserRegistrationStates.Remove(ChatID);
+                    }
+                    return;
                 }
             }
             catch (Exception ex)
@@ -75,14 +78,18 @@ namespace hikvision_emp_card_face_telegram_bot.bot
 
         private async Task HandleStartCommand(Message message)
         {
+
+            string text = "*Bu bot tushlik uchun ovqat buyurtma qilish uchun yaratilgan.*\n\n" +
+                 "Siz botda ro'yhatdan o'tish uchun quyidagi kommandalardan foydalanishingiz mumkin:\n\n" +
+                 "*/start* - Botni ishga tushirish\n" +
+                 "*/inputMenu* - Kundalik menyuni kiritish\n" +
+                 "*/register* - Foydalanuvchini ro'yhatdan o'tish\n" +
+                 "*/help* - Bot haqida ma'lumotlar";
+
             await _botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: "This bot was created to order food for lunch. You can register through this bot " +
-                      "\r\n \r\n You can use the following commands: \r\n \r\n " + 
-                      "/start - to restart and change the language \r\n " + 
-                      "/inputMenu - to enter today's menu \r\n " + 
-                      "/register - for employee registration \r\n "+
-                      "/help - to get information about the bot"
+                text: text,
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
             );
         }
 
@@ -93,16 +100,64 @@ namespace hikvision_emp_card_face_telegram_bot.bot
             using (var scope = _serviceProvider.CreateScope())
             {
                 var _employeeService = scope.ServiceProvider.GetRequiredService<IEmployeeService>();
-                EmployeeDTO botUser = _employeeService.FindByChatID(ChatID);
-                if (botUser == null)
+                EmployeeService.CodeResultRegistration? codeResult = _employeeService.FindByChatID(ChatID);
+                
+                if (codeResult == null || codeResult.Equals(EmployeeService.CodeResultRegistration.FIRST_NAME))
                 {
-                    _employeeService.CreateBotUser(ChatID);
-                    _botUserRegistrationStates.Add(ChatID, RegistrationStates.FIRST_NAME);
+                    if(codeResult == null)
+                        _employeeService.CreateBotUser(ChatID);
+    
+                    if(!_botUserRegistrationStates.ContainsKey(ChatID))
+                        _botUserRegistrationStates.Add(ChatID, RegistrationStates.FIRST_NAME);
+                    else 
+                        _botUserRegistrationStates[ChatID] = RegistrationStates.FIRST_NAME;
+
                     await _botClient.SendTextMessageAsync(
                         chatId: ChatID,
                         text: "Ismingizni kiriting!"
                         );
                 }
+
+                else if(codeResult.Equals(EmployeeService.CodeResultRegistration.LAST_NAME))
+                {
+                    if (!_botUserRegistrationStates.ContainsKey(ChatID))
+                        _botUserRegistrationStates.Add(ChatID, RegistrationStates.LAST_NAME);
+                    else
+                        _botUserRegistrationStates[ChatID] = RegistrationStates.LAST_NAME;
+
+                    await _botClient.SendTextMessageAsync(
+                        chatId: ChatID,
+                        text: "Familyangizni kiriting!"
+                        );
+                }
+
+                else if(codeResult.Equals(EmployeeService.CodeResultRegistration.EMPLOYEE_POSITION))
+                {
+                    if (!_botUserRegistrationStates.ContainsKey(ChatID))
+                        _botUserRegistrationStates.Add(ChatID, RegistrationStates.EMPLOYEE_POSITION);
+                    else
+                        _botUserRegistrationStates[ChatID] = RegistrationStates.EMPLOYEE_POSITION;
+
+                    await _botClient.SendTextMessageAsync(
+                        chatId: ChatID,
+                        text: "Pozitsiyangizni kiriting!",
+                        replyMarkup: _registerHandler.GetEmployeePositionMarkup()
+                        );
+                }
+
+                else if(codeResult.Equals(EmployeeService.CodeResultRegistration.FACE_UPLOAD))
+                {
+                    if (!_botUserRegistrationStates.ContainsKey(ChatID))
+                        _botUserRegistrationStates.Add(ChatID, RegistrationStates.FACE_UPLOAD);
+                    else
+                        _botUserRegistrationStates[ChatID] = RegistrationStates.FACE_UPLOAD;
+
+                    await _botClient.SendTextMessageAsync(
+                        chatId: ChatID,
+                        text: "Yuz rasmingizni kiriting!"
+                        );
+                }
+
                 else
                 {
                     await _botClient.SendTextMessageAsync(

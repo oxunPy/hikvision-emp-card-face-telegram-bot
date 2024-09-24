@@ -93,7 +93,7 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
                 }
 
                 // Define the directory to save the image
-                var savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                var savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "faces");
 
                 // Ensure that the directory exists
                 if(!Directory.Exists(savePath))
