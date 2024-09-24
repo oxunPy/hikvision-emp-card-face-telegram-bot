@@ -51,5 +51,9 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
             _dbContext.Update(employee);
             return Save();
         }
+        public Employee FindByTelegramChatId(long chatId)
+        {
+            return _dbContext.Employees.Where(x => x.TelegramChatId == chatId.ToString()).FirstOrDefault();
+        }
     }
 }

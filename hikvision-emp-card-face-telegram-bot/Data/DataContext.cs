@@ -23,7 +23,6 @@ namespace hikvision_emp_card_face_telegram_bot.Data
         public DbSet<Employee> Employees { get; set; }
         public DbSet<LunchMenu> LunchMenus { get; set; }
         public DbSet<SelectedMenu> SelectedMenus { get; set; }  
-
         public DbSet<TerminalConfiguration> TerminalConfigurations { get; set; }
 
 

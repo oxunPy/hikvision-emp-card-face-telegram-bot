@@ -115,6 +115,9 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                     b.Property<string>("PinCode")
                         .HasColumnType("text");
 
+                    b.Property<int?>("PositionEmp")
+                        .HasColumnType("integer");
+
                     b.Property<string>("TelegramChatId")
                         .HasColumnType("text");
 

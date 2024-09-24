@@ -1,4 +1,6 @@
-﻿namespace hikvision_emp_card_face_telegram_bot.Dto
+﻿using hikvision_emp_card_face_telegram_bot.Entity;
+
+namespace hikvision_emp_card_face_telegram_bot.Dto
 {
     public class EmployeeDTO
     {
@@ -15,6 +17,7 @@
         public bool IsPinVerified { get; set; }
 
         public string? PinCode { get; set; }    
+        public Employee.Position? Position { get; set; }    
 
         public string? HikCardCode { get; set; }
 

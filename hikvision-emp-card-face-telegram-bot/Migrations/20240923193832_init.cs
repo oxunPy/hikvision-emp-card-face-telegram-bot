@@ -37,6 +37,7 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                     FaceImagePath = table.Column<string>(type: "text", nullable: true),
                     TelegramChatId = table.Column<string>(type: "text", nullable: true),
                     PinCode = table.Column<string>(type: "text", nullable: true),
+                    PositionEmp = table.Column<int>(type: "integer", nullable: true),
                     IsPinVerified = table.Column<bool>(type: "boolean", nullable: false),
                     HikCardCode = table.Column<string>(type: "text", nullable: true),
                     HikCardId = table.Column<string>(type: "text", nullable: true)
@@ -58,18 +59,6 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LunchMenus", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SelectedMenuReport",
-                columns: table => new
-                {
-                    DishName = table.Column<string>(type: "text", nullable: true),
-                    Quantity = table.Column<int>(type: "integer", nullable: true),
-                    EmployeeNames = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
                 });
 
             migrationBuilder.CreateTable(
@@ -162,9 +151,6 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
         {
             migrationBuilder.DropTable(
                 name: "LunchMenus");
-
-            migrationBuilder.DropTable(
-                name: "SelectedMenuReport");
 
             migrationBuilder.DropTable(
                 name: "SelectedMenus");

@@ -6,6 +6,9 @@ using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+using hikvision_emp_card_face_telegram_bot.Repository;
+using AutoMapper;
+using hikvision_emp_card_face_telegram_bot.Interfaces;
 
 namespace hikvision_emp_card_face_telegram_bot.Controllers
 {
@@ -20,10 +23,14 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
         public static Int32 m_lSetFaceCfgHandle = -1;
 
         private readonly ILogger<EmployeeController> _logger;
+        private readonly IEmployeeRepository _employeeRepository;
+        private readonly IMapper _mapper;
 
-        public EmployeeController(ILogger<EmployeeController> logger)
+        public EmployeeController(ILogger<EmployeeController> logger, IEmployeeRepository employeeRepository, IMapper mapper)
         {
             _logger = logger;
+            _employeeRepository = employeeRepository;
+            _mapper = mapper;
         }
 
         [HttpGet("/page-employees")]
@@ -117,6 +124,11 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
             }
         }
 
+        [HttpGet("/get-by-chatId")]
+        public EmployeeDTO GetEmployeeByChatID([FromQuery(Name = "chat_id")] long chatID)
+        {
+            return _mapper.Map<EmployeeDTO>(_employeeRepository.FindByTelegramChatId(chatID));
+        }
 
         private void SendCardData(String cardNo, String cardRightPlan, String employeeNo, String name)
         {

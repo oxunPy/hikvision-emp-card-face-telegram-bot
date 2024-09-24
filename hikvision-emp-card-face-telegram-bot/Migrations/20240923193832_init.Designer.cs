@@ -13,8 +13,8 @@ using hikvision_emp_card_face_telegram_bot.Data;
 namespace hikvision_emp_card_face_telegram_bot.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240923140438_UpdateWithoutSelectedMenuReport")]
-    partial class UpdateWithoutSelectedMenuReport
+    [Migration("20240923193832_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -117,6 +117,9 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
 
                     b.Property<string>("PinCode")
                         .HasColumnType("text");
+
+                    b.Property<int?>("PositionEmp")
+                        .HasColumnType("integer");
 
                     b.Property<string>("TelegramChatId")
                         .HasColumnType("text");

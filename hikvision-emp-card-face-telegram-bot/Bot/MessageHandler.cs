@@ -1,16 +1,28 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
+using hikvision_emp_card_face_telegram_bot.bot.State;
+using hikvision_emp_card_face_telegram_bot.Service.Impl;
+using hikvision_emp_card_face_telegram_bot.Service;
+using hikvision_emp_card_face_telegram_bot.Dto;
+using hikvision_emp_card_face_telegram_bot.bot.ActionHandler;
 
 namespace hikvision_emp_card_face_telegram_bot.bot
 {
     public class MessageHandler
     {
         private readonly TelegramBotClient _botClient;
+        private readonly RegisterHandler _registerHandler;
+        private readonly IServiceProvider _serviceProvider;
 
-        public MessageHandler(TelegramBotClient botClient)
+        private Dictionary<long, RegistrationStates> _botUserRegistrationStates;
+
+        public MessageHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, RegisterHandler registerHandler)
         {
             _botClient = botClient;
+            _serviceProvider = serviceProvider;
+            _registerHandler = registerHandler;
+            _botUserRegistrationStates = new Dictionary<long, RegistrationStates>();
         }
 
 
@@ -19,6 +31,13 @@ namespace hikvision_emp_card_face_telegram_bot.bot
             if (message.Type != MessageType.Text)
             {
                 await HandleUnsupportedMessageType(message);
+                return;
+            }
+
+            var ChatID = message.Chat.Id;
+
+            if(_botUserRegistrationStates.ContainsKey(ChatID)) {
+                _registerHandler.HandleRegistrationAsync(message);
                 return;
             }
 
@@ -38,10 +57,6 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                         await HandleRegisterCommand(message);
                         break;
 
-                    case "/help":
-                        await HandleHelpCommand(message);
-                        break;
-
                     default:
                         await HandleUnknownMessage(message);
                         break;
@@ -49,8 +64,7 @@ namespace hikvision_emp_card_face_telegram_bot.bot
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling message: {ex.Message}");
-                await _botClient.SendTextMessageAsync(message.Chat.Id, "An error occurred while processing your message.");
+                await _botClient.SendTextMessageAsync(message.Chat.Id, $"Error handling message: {ex.Message}");
             }
         }
 
@@ -69,29 +83,33 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                       "/inputMenu - to enter today's menu \r\n " + 
                       "/register - for employee registration \r\n "+
                       "/help - to get information about the bot"
-            //replyMarkup: 
-            );
-        }
-
-        private async Task HandleHelpCommand(Message message)
-        {
-            string helpText = "Available commands:\n" +
-                              "/start - Start the bot\n" +
-                              "/help - Show this help message\n" +
-                              "hello - Say hello to the bot";
-
-            await _botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: helpText
             );
         }
 
         private async Task HandleRegisterCommand(Message message)
         {
-            await _botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: "Hello! How can I assist you today?"
-            );
+            var ChatID = message.Chat.Id;
+            
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var _employeeService = scope.ServiceProvider.GetRequiredService<IEmployeeService>();
+                EmployeeDTO botUser = _employeeService.FindByChatID(ChatID);
+                if (botUser == null)
+                {
+                    _employeeService.CreateBotUser(ChatID);
+                    _botUserRegistrationStates.Add(ChatID, RegistrationStates.FIRST_NAME);
+                    await _botClient.SendTextMessageAsync(
+                        chatId: ChatID,
+                        text: "Ismingizni kiriting!"
+                        );
+                }
+                else
+                {
+                    await _botClient.SendTextMessageAsync(
+                        chatId: ChatID,
+                        text: "Bu user avval registratsiya bo'lgan!");
+                }
+            }
         }
 
         private async Task HandleUnknownMessage(Message message)

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using hikvision_emp_card_face_telegram_bot.Dto;
 
 namespace hikvision_emp_card_face_telegram_bot.Entity
 {
@@ -10,16 +11,6 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
             EMPLOYEE,
             MANAGER,
             CATERING_MANAGER
-        }
-
-        public enum RegistrationState
-        {
-            FIRST_NAME,
-            LAST_NAME,
-            POSITION,
-            PIN_CODE,
-            IMAGE_EMP,
-            COMPLETED
         }
 
         [Key]
@@ -36,11 +27,28 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
         public string? TelegramChatId { get; set; }
 
         public string? PinCode { get; set; }
+        public Position? PositionEmp { get; set; }
 
         public bool IsPinVerified { get; set; }
 
         public string? HikCardCode {  get; set; }
         
         public string? HikCardId { get; set; }
+
+        public EmployeeDTO ToDTO()
+        {
+            return new EmployeeDTO
+            {
+                Id = this.Id,
+                FirstName = this.FirstName,
+                LastName = this.LastName,
+                FaceImagePath = this.FaceImagePath,
+                TelegramChatId = this.TelegramChatId,
+                IsPinVerified = this.IsPinVerified,
+                Position = this.PositionEmp
+            };
+        }
     }
+  
+
 }
