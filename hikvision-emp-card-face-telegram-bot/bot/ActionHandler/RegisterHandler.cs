@@ -84,6 +84,9 @@ namespace hikvision_emp_card_face_telegram_bot.bot.ActionHandler
                                     chatId: message.Chat.Id,
                                     text: "Foydalanuvchi muvaffaqiyatli yaratildi!"
                                     );
+
+                                _employeeService.CreateNewHikiEmployee(message.Chat.Id);
+                                _employeeService.SendFaceData(message.Chat.Id, filePath);
                             }
                             break;
 

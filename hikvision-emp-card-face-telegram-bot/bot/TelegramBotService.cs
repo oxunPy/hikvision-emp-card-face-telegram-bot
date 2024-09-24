@@ -1,4 +1,7 @@
 ﻿using hikvision_emp_card_face_telegram_bot.Bot;
+using hikvision_emp_card_face_telegram_bot.Entity;
+using hikvision_emp_card_face_telegram_bot.Service;
+using hikvision_emp_card_face_telegram_bot.Service.Impl;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
@@ -14,7 +17,10 @@ namespace hikvision_emp_card_face_telegram_bot.bot
         private readonly MessageHandler _messageHandler;
 
 
-        public TelegramBotService(ILogger<TelegramBotService> logger, TelegramBotClient botClient, MessageHandler messageHandler, CallbackHandler callbackHandler)
+        public TelegramBotService(ILogger<TelegramBotService> logger, 
+                                  TelegramBotClient botClient, 
+                                  MessageHandler messageHandler, 
+                                  CallbackHandler callbackHandler)
         {
             _botClient = botClient;
             _logger = logger;

@@ -6,6 +6,7 @@ using hikvision_emp_card_face_telegram_bot.Service.Impl;
 using hikvision_emp_card_face_telegram_bot.Service;
 using hikvision_emp_card_face_telegram_bot.Dto;
 using hikvision_emp_card_face_telegram_bot.bot.ActionHandler;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace hikvision_emp_card_face_telegram_bot.bot
 {
@@ -16,8 +17,6 @@ namespace hikvision_emp_card_face_telegram_bot.bot
         private readonly IServiceProvider _serviceProvider;
 
         private Dictionary<long, RegistrationStates> _botUserRegistrationStates;
-        
-
 
         public MessageHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, RegisterHandler registerHandler)
         {
@@ -61,6 +60,7 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                     if (_botUserRegistrationStates[ChatID].Equals(RegistrationStates.COMPLETED))
                     {
                         _botUserRegistrationStates.Remove(ChatID);
+                        
                     }
                     return;
                 }
@@ -151,18 +151,21 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                         _botUserRegistrationStates.Add(ChatID, RegistrationStates.FACE_UPLOAD);
                     else
                         _botUserRegistrationStates[ChatID] = RegistrationStates.FACE_UPLOAD;
-
+                    
                     await _botClient.SendTextMessageAsync(
                         chatId: ChatID,
-                        text: "Yuz rasmingizni kiriting!"
+                        text: "Yuz rasmingizni kiriting!",
+                        replyMarkup: new ReplyKeyboardRemove()
                         );
                 }
 
-                else
+                else if(codeResult.Equals(EmployeeService.CodeResultRegistration.COMPLETE))
                 {
                     await _botClient.SendTextMessageAsync(
                         chatId: ChatID,
-                        text: "Bu user avval registratsiya bo'lgan!");
+                        text: "Bu user avval registratsiya bo'lgan!",
+                        replyMarkup: new ReplyKeyboardRemove()
+                        );
                 }
             }
         }

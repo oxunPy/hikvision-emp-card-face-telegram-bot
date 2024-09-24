@@ -18,6 +18,8 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
 
         bool DeleteDish(Dish dish);
 
+        ICollection<Dish> GetDishByTodaysMenu();
+
         bool Save();
     }
 }

@@ -2,5 +2,6 @@
 {
     public interface ITerminalConfigurationService
     {
+        void AutoLogin(string username, string password);
     }
 }

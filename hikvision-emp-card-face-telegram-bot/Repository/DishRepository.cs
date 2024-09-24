@@ -46,16 +46,21 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
             return _dbContext.Dishes.Where(dish => dish.CategoryId == categoryId).ToList();  
         }
 
-        public bool Save()
-        {
-            var saved = _dbContext.SaveChanges();
-            return saved > 0;
-        }
-
         public bool UpdateDish(Dish dish)
         {
             _dbContext.Update(dish);
             return Save();
+        }
+
+        public ICollection<Dish> GetDishesByTodaysMenu()
+        {
+            return _dbContext.Dishes.FromSqlRaw<Dish>("").ToList();
+        }
+
+        public bool Save()
+        {
+            var saved = _dbContext.SaveChanges();
+            return saved > 0;
         }
     }
 }

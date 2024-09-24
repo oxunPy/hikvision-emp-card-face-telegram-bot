@@ -11,5 +11,9 @@ namespace hikvision_emp_card_face_telegram_bot.Service
         EmployeeService.CodeResultRegistration? FindByChatID(long chatId);
 
         bool UpdateByChatID(long chatId, RegistrationStates state, EmployeeDTO dto);
+
+        void CreateNewHikiEmployee(long chatId);
+
+        void SendFaceData(long chatId, string filePath);
     }
 }

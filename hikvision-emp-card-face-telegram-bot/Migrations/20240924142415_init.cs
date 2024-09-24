@@ -36,11 +36,8 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                     LastName = table.Column<string>(type: "text", nullable: true),
                     FaceImagePath = table.Column<string>(type: "text", nullable: true),
                     TelegramChatId = table.Column<string>(type: "text", nullable: true),
-                    PinCode = table.Column<string>(type: "text", nullable: true),
                     PositionEmp = table.Column<int>(type: "integer", nullable: true),
-                    IsPinVerified = table.Column<bool>(type: "boolean", nullable: false),
-                    HikCardCode = table.Column<string>(type: "text", nullable: true),
-                    HikCardId = table.Column<string>(type: "text", nullable: true)
+                    HikCardCode = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

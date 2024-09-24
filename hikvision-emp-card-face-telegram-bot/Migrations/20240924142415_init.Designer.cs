@@ -13,8 +13,8 @@ using hikvision_emp_card_face_telegram_bot.Data;
 namespace hikvision_emp_card_face_telegram_bot.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240924070130_update employee")]
-    partial class updateemployee
+    [Migration("20240924142415_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

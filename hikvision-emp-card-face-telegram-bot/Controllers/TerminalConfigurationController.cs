@@ -1,4 +1,5 @@
 ﻿using CardManagement;
+using hikvision_emp_card_face_telegram_bot.Service;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -16,10 +17,18 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
         public static int m_UserID = -1;
 
         private readonly ILogger<TerminalConfigurationController> _logger;
+        private readonly ITerminalConfigurationService _terminalConfigurationService;
 
-        public TerminalConfigurationController(ILogger<TerminalConfigurationController> logger)
+        public TerminalConfigurationController(ILogger<TerminalConfigurationController> logger, ITerminalConfigurationService terminalConfigurationService)
         {
             _logger = logger;
+            _terminalConfigurationService = terminalConfigurationService;
+        }
+
+        [HttpGet("/bot-login-hiki")]
+        public void BotUserRecognize()
+        {
+            _terminalConfigurationService.AutoLogin("admin", "JDev@2022");
         }
 
         [HttpGet("auto-login")]
