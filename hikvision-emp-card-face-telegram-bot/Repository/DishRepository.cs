@@ -62,5 +62,10 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
             var saved = _dbContext.SaveChanges();
             return saved > 0;
         }
+
+        public ICollection<Dish> GetDishByTodaysMenu()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

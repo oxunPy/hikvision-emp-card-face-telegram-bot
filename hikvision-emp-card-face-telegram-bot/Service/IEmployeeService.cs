@@ -8,7 +8,9 @@ namespace hikvision_emp_card_face_telegram_bot.Service
     {
         EmployeeDTO CreateBotUser(long chatId);
 
-        EmployeeService.CodeResultRegistration? FindByChatID(long chatId);
+        EmployeeDTO FindByChatID(long chatId);
+
+        EmployeeService.CodeResultRegistration? RegisterByChatID(long chatId);
 
         bool UpdateByChatID(long chatId, RegistrationStates state, EmployeeDTO dto);
 

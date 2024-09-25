@@ -59,7 +59,15 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             return null;
         }
 
-        public CodeResultRegistration? FindByChatID(long chatId)
+        public EmployeeDTO FindByChatID(long chatID)
+        {
+            if (chatID == 0 || chatID == null)
+                return null;
+
+            return _mapper.Map<EmployeeDTO>(_employeeRepository.FindByTelegramChatId(chatID));
+        }
+
+        public CodeResultRegistration? RegisterByChatID(long chatId)
         {
             var employee = _employeeRepository.FindByTelegramChatId(chatId);
             
@@ -81,7 +89,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             {
                 return CodeResultRegistration.EMPLOYEE_POSITION;
             }
-            else if (employee.FaceImagePath == null)
+            else if (employee.FaceImagePath == null && employee.PositionEmp.Equals(Employee.Position.EMPLOYEE))
             {
                 return CodeResultRegistration.FACE_UPLOAD;
             }

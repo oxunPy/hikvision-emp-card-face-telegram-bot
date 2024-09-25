@@ -52,6 +52,10 @@ namespace hikvision_emp_card_face_telegram_bot.Data
                 .HasForeignKey(s => s.EmployeeId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.TelegramChatId)
+                .IsUnique(true);
+
             // Configuring SelectedMenuReport as a query type (not mapped to a table)
             modelBuilder.Entity<SelectedMenuReport>().HasNoKey().ToView(null); // This ensures it's not treated as a table
         }

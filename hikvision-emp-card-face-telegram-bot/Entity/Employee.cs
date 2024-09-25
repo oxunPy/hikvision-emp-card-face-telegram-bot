@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using hikvision_emp_card_face_telegram_bot.Dto;
+using Microsoft.EntityFrameworkCore;
 
 namespace hikvision_emp_card_face_telegram_bot.Entity
 {

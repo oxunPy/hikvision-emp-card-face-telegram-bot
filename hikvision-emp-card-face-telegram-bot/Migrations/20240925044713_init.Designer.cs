@@ -13,7 +13,7 @@ using hikvision_emp_card_face_telegram_bot.Data;
 namespace hikvision_emp_card_face_telegram_bot.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240924142415_init")]
+    [Migration("20240925044713_init")]
     partial class init
     {
         /// <inheritdoc />

@@ -7,6 +7,8 @@ using hikvision_emp_card_face_telegram_bot.Service;
 using hikvision_emp_card_face_telegram_bot.Dto;
 using hikvision_emp_card_face_telegram_bot.bot.ActionHandler;
 using Telegram.Bot.Types.ReplyMarkups;
+using hikvision_emp_card_face_telegram_bot.Entity;
+using hikvision_emp_card_face_telegram_bot.Bot.State;
 
 namespace hikvision_emp_card_face_telegram_bot.bot
 {
@@ -17,6 +19,7 @@ namespace hikvision_emp_card_face_telegram_bot.bot
         private readonly IServiceProvider _serviceProvider;
 
         private Dictionary<long, RegistrationStates> _botUserRegistrationStates;
+        
 
         public MessageHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, RegisterHandler registerHandler)
         {
@@ -45,7 +48,7 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                             await HandleRegisterCommand(message);
                             return;
 
-                        case "/inputMenu":
+                        case "/inputmenu":
                             await HandleInputMenu(message);
                             return;
                     }
@@ -73,7 +76,50 @@ namespace hikvision_emp_card_face_telegram_bot.bot
 
         private async Task HandleInputMenu(Message message)
         {
-            throw new NotImplementedException();
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var _employeeService = scope.ServiceProvider.GetService<IEmployeeService>();
+
+                EmployeeDTO employee = _employeeService.FindByChatID(message.Chat.Id);
+
+                if (employee != null) 
+                { 
+                    if(employee.PositionEmp.Equals(Employee.Position.EMPLOYEE) || employee.PositionEmp.Equals(Employee.Position.MANAGER))
+                    {
+                        _botClient.SendTextMessageAsync(
+                            chatId: message.Chat.Id,
+                            text: "Sizda kundalik menyu kiritishingizga ruxsat berilmagan"
+                            );
+                        return;
+                    }
+
+                    // Create an inline keyboard with the days of the week
+                    var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                    {
+                        new [] // Row 1
+                        {
+                            InlineKeyboardButton.WithCallbackData("Monday", "Monday"),
+                            InlineKeyboardButton.WithCallbackData("Tuesday", "Tuesday"),
+                        },
+                        new [] // Row 2
+                        {
+                            InlineKeyboardButton.WithCallbackData("Wednesday", "Wednesday"),
+                            InlineKeyboardButton.WithCallbackData("Thursday", "Thursday"),
+                        },
+                        new [] // Row 3
+                        {
+                            InlineKeyboardButton.WithCallbackData("Friday", "Friday"),
+                        },
+                    });
+
+                    _botClient.SendTextMessageAsync(
+                        chatId: message.Chat.Id,
+                        text: "Hafta kunini tanglang!",
+                        replyMarkup: inlineKeyboard
+                        );
+                }
+
+            }
         }
 
         private async Task HandleStartCommand(Message message)
@@ -100,7 +146,7 @@ namespace hikvision_emp_card_face_telegram_bot.bot
             using (var scope = _serviceProvider.CreateScope())
             {
                 var _employeeService = scope.ServiceProvider.GetRequiredService<IEmployeeService>();
-                EmployeeService.CodeResultRegistration? codeResult = _employeeService.FindByChatID(ChatID);
+                EmployeeService.CodeResultRegistration? codeResult = _employeeService.RegisterByChatID(ChatID);
                 
                 if (codeResult == null || codeResult.Equals(EmployeeService.CodeResultRegistration.FIRST_NAME))
                 {

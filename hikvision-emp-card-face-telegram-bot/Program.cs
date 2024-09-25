@@ -4,6 +4,7 @@ using hikvision_emp_card_face_telegram_bot;
 using hikvision_emp_card_face_telegram_bot.bot;
 using hikvision_emp_card_face_telegram_bot.bot.ActionHandler;
 using hikvision_emp_card_face_telegram_bot.Bot;
+using hikvision_emp_card_face_telegram_bot.Bot.ActionHandler;
 using hikvision_emp_card_face_telegram_bot.Data;
 using hikvision_emp_card_face_telegram_bot.Interfaces;
 using hikvision_emp_card_face_telegram_bot.Repository;
@@ -50,6 +51,7 @@ builder.Services.AddSingleton<TelegramBotService>();
 builder.Services.AddSingleton<CallbackHandler>();
 builder.Services.AddSingleton<MessageHandler>();
 builder.Services.AddSingleton<RegisterHandler>();
+builder.Services.AddSingleton<MenuInputHandler>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

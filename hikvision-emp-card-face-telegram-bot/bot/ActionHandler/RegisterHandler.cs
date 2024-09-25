@@ -61,13 +61,23 @@ namespace hikvision_emp_card_face_telegram_bot.bot.ActionHandler
                                 PositionEmp = (Employee.Position) Enum.Parse(typeof(Employee.Position), message.Text)
                             });
 
-                            await _botClient.SendTextMessageAsync(
+                            if(Enum.Parse(typeof(Employee.Position), message.Text).Equals(Employee.Position.EMPLOYEE))
+                            {
+                                await _botClient.SendTextMessageAsync(
                                 chatId: message.Chat.Id,
                                 text: "Yuz rasmingizni kiriting! (maximum = 200kb)"
                                 );
+                            }
 
-                            // CREATE USER FOR HIKVISION
-
+                            else
+                            {
+                                await _botClient.SendTextMessageAsync(
+                                    chatId: message.Chat.Id,
+                                    text: "Foydalanuvchi muvaffaqiyatli yaratildi!",
+                                    replyMarkup: new ReplyKeyboardRemove()
+                                    );
+                            }
+                           
                             break;
 
 
