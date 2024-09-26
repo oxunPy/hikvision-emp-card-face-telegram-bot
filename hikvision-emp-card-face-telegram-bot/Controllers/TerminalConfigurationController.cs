@@ -46,7 +46,7 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
             CHCNetSDKForCard.NET_DVR_DEVICEINFO_V40 struDeviceInfoV40 = new CHCNetSDKForCard.NET_DVR_DEVICEINFO_V40();
             struDeviceInfoV40.struDeviceV30.sSerialNumber = new byte[CHCNetSDKForCard.SERIALNO_LEN];
 
-            struLoginInfo.sDeviceAddress = "192.168.7.33";
+            struLoginInfo.sDeviceAddress = "192.168.7.249";
             struLoginInfo.sUserName = username;
             struLoginInfo.sPassword = password;
             ushort.TryParse("8000", out struLoginInfo.wPort);

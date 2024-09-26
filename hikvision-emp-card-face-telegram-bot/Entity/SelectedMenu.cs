@@ -10,14 +10,14 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
-        public long EmployeeId { get; set; }
+        public long? EmployeeId { get; set; }
 
         [ForeignKey("EmployeeId")]
         public Employee? Employee { get; set; } 
 
         public DateTime Date { get; set; }
 
-        public long DishId {  get; set; }
+        public long? DishId {  get; set; }
 
         [ForeignKey("DishId")]
         public Dish? Dish { get; set; }

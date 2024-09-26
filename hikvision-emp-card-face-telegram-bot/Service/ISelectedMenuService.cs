@@ -2,5 +2,8 @@
 {
     public interface ISelectedMenuService
     {
+        bool HasEmployeeSelectedMealToday(long chatId);
+
+        bool CreateOrUpdateSelectedMenuIfDeletedMeal(long chatId, long mealId);
     }
 }

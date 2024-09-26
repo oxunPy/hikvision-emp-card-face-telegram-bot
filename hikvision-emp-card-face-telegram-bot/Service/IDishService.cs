@@ -13,5 +13,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service
         DishDTO UpdateDish(DishDTO dto);
 
         DishDTO GetLatestDishByLunchMenu(long dishId);
+
+        bool DeleteDishAndItsRelatingImg(long dishId);
     }
 }

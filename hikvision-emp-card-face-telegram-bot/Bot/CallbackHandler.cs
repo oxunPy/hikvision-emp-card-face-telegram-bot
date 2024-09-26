@@ -4,6 +4,7 @@ using hikvision_emp_card_face_telegram_bot.Service;
 using System.Linq;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace hikvision_emp_card_face_telegram_bot.Bot
@@ -79,6 +80,44 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
                             }  
                             break;
                     }
+
+                    if(callbackQuery.Data.ToLower().StartsWith("deletemeal"))
+                    {
+                        using (var scope = _serviceProvider.CreateScope())
+                        {
+                            var _dishService = scope.ServiceProvider.GetService<IDishService>();
+                            var _lunchService = scope.ServiceProvider.GetService<ILunchMenuService>();
+                            // delete meal from db and clear from lunch menu dishIds
+                            long mealId = long.Parse(callbackQuery.Data.Substring(callbackQuery.Data.IndexOf('_') + 1));
+                            _dishService.DeleteDishAndItsRelatingImg(mealId);
+                            _lunchService.ClearDishIdFromLunchMenu(mealId);
+                        }
+                    }
+
+                    if(callbackQuery.Data.ToLower().StartsWith("selectmeal"))
+                    {
+                        using (var scope = _serviceProvider.CreateScope())
+                        {
+                            var _selectedMenuService = scope.ServiceProvider.GetService<ISelectedMenuService>();
+
+                            long mealId = long.Parse(callbackQuery.Data.Substring(callbackQuery.Data.IndexOf('_') + 1));
+                            // check first if employee has selected meal item today or not
+                            if(_selectedMenuService.HasEmployeeSelectedMealToday(callbackQuery.From.Id))
+                            {
+                                await _botClient.SendTextMessageAsync(
+                                    chatId: callbackQuery.From.Id,
+                                    text: "Siz bugungi kun uchun ovqat tanladingiz!"
+                                    );
+                                return;
+                            }
+
+                            _selectedMenuService.CreateOrUpdateSelectedMenuIfDeletedMeal(callbackQuery.From.Id, mealId);
+                            await _botClient.SendTextMessageAsync(
+                                chatId: callbackQuery.From.Id,
+                                text: "Sizning tanlovingiz qabul qilindi!"
+                                );
+                        }
+                    }
                 }
             }
             
@@ -123,16 +162,18 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
                             {
                                 new[]
                                 {
-                                    InlineKeyboardButton.WithCallbackData("O'chirish", $"deleteMeal{dishesByDay.ElementAt(i).Id}"),
+                                    InlineKeyboardButton.WithCallbackData("O'chirish", $"deleteMeal_{dishesByDay.ElementAt(i).Id}"),
                                 }
                             });
 
                             // Send photo with inline keyboard
+                            string dishInfoText = $"Nomi: *{dishesByDay.ElementAt(i).Name}*\n\nNarxi: *{dishesByDay.ElementAt(i).Price} so'm*";
                             await _botClient.SendPhotoAsync(
                                 chatId: callbackQuery.From.Id,
                                 photo: photo,
-                                caption: "Here is your image with an inline keyboard!",
-                                replyMarkup: inlineKeyboard
+                                caption: dishInfoText,
+                                replyMarkup: inlineKeyboard,
+                                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
                             );
                         }
                     }

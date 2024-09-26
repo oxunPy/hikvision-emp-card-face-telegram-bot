@@ -22,6 +22,8 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
 
         LunchMenu? UpdateLunchMenuForCurrentEdit(DayOfWeek dayOfWeek);
 
+        LunchMenu? GetLunchMenuByDishId(long dishId);
+
         bool Save();
     }
 }

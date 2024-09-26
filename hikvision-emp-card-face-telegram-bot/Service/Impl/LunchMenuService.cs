@@ -66,5 +66,14 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             entity.DayOfWeek = lunchMenu.DayOfWeek;
             return _lunchRepository.UpdateLunchMenu(entity);
         }
+
+        public bool ClearDishIdFromLunchMenu(long dishId)
+        {
+            LunchMenu entity = _lunchRepository.GetLunchMenuByDishId(dishId);
+            if (entity == null) return false;
+
+            entity.DishIds.Remove(dishId);
+            return _lunchRepository.UpdateLunchMenu(entity);
+        }
     }
 }

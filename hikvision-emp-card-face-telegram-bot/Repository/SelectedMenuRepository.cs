@@ -3,6 +3,7 @@ using hikvision_emp_card_face_telegram_bot.Data.Report;
 using hikvision_emp_card_face_telegram_bot.Entity;
 using hikvision_emp_card_face_telegram_bot.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Data.SqlClient;
 
 namespace hikvision_emp_card_face_telegram_bot.Repository
@@ -66,6 +67,19 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
                       GROUP BY d.""Name""";
             
             return await _dbContext.Set<SelectedMenuReport>().FromSqlRaw(query, new SqlParameter("today", today)).ToListAsync();
+        }
+
+        public SelectedMenu? GetTodaysSelectedMenuByEmployeeChatId(long chatId)
+        {
+            var query = @"select slm.*
+                        from ""SelectedMenus"" slm
+                        inner join (
+                            select *
+                            from ""Employees""
+                            where ""TelegramChatId"" = @chatid
+                        ) e on e.""Id"" = slm.""EmployeeId""
+                        where cast(slm.""Date"" as date) = cast(now() as date)";
+            return _dbContext.SelectedMenus.FromSqlRaw(query, new NpgsqlParameter("chatid", chatId.ToString())).FirstOrDefault();
         }
     }
 }

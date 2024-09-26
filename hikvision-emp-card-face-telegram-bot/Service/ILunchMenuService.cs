@@ -13,5 +13,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service
         bool UpdateLunchMenu(LunchMenuDTO lunchMenu);
 
         LunchMenuDTO SetCurrentEdit(DayOfWeek dayOfWeek);
+
+        bool ClearDishIdFromLunchMenu(long dishId);
     }
 }

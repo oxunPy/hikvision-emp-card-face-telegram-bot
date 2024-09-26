@@ -60,5 +60,19 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
         {
             return _mapper.Map<List<DishDTO>>(_dishRepository.GetDishesByWeekDay(dayOfWeek));
         }
+
+        public bool DeleteDishAndItsRelatingImg(long dishId)
+        {
+            Dish entity = _dishRepository.GetDish(dishId);
+            if(entity == null) return false;
+
+            string filePath = entity.ImagePath;
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            return _dishRepository.DeleteDish(entity);
+        }
     }
 }

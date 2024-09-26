@@ -3,6 +3,10 @@ using System.Runtime.InteropServices;
 using static CardManagement.CHCNetSDKForCard;
 using System.Text;
 using Telegram.Bot;
+using hikvision_emp_card_face_telegram_bot.Dto;
+using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bot.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace hikvision_emp_card_face_telegram_bot.Service.Impl
 {
@@ -11,13 +15,13 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
         public static int m_UserID = -1;
         private readonly ILogger<TerminalConfigurationService> _logger;
         private readonly TelegramBotClient _telegramBotClient;
-        private readonly IDishService _dishService;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public TerminalConfigurationService(ILogger<TerminalConfigurationService> logger, TelegramBotClient telegramBotClient, IDishService dishService) 
+        public TerminalConfigurationService(ILogger<TerminalConfigurationService> logger, TelegramBotClient telegramBotClient, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _telegramBotClient = telegramBotClient;
-            _dishService = dishService;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
 
@@ -32,7 +36,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             CHCNetSDKForCard.NET_DVR_DEVICEINFO_V40 struDeviceInfoV40 = new CHCNetSDKForCard.NET_DVR_DEVICEINFO_V40();
             struDeviceInfoV40.struDeviceV30.sSerialNumber = new byte[CHCNetSDKForCard.SERIALNO_LEN];
 
-            struLoginInfo.sDeviceAddress = "192.168.7.33";
+            struLoginInfo.sDeviceAddress = "192.168.7.249";
             struLoginInfo.sUserName = username;
             struLoginInfo.sPassword = password;
             ushort.TryParse("8000", out struLoginInfo.wPort);
@@ -111,13 +115,57 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
                     _logger.LogInformation($"Employee No: {strCardResult.struAcsEventInfo.dwEmployeeNo}");
                     _logger.LogInformation($"Card No: {cardNo}");
 
-                    _telegramBotClient.SendTextMessageAsync(
-                        chatId: long.Parse(cardNo),
-                        text: "Yuzingiz tanildi!"
-                        );
+                    HandleEmployeeFaceRecognitionLater(cardNo);
                 }
             }
             return true;
+        }
+
+        private async Task HandleEmployeeFaceRecognitionLater(string cardNo)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var _dishService = scope.ServiceProvider.GetService<IDishService>();
+                ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DateTime.Now.DayOfWeek);
+
+                await _telegramBotClient.SendTextMessageAsync(
+                chatId: long.Parse(cardNo),
+                "*Bugungi kun uchun taom tanlang!*",
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
+                );
+
+                if (dishesByDay != null && dishesByDay.Count > 0)
+                {
+                    for (int i = 0; i < dishesByDay.Count; i++)
+                    {
+                        // Load the image file
+                        using (FileStream fs = new FileStream(dishesByDay.ElementAt(i).ImagePath, FileMode.Open, FileAccess.Read))
+                        {
+                            var photo = InputFile.FromStream(fs);
+
+                            // Create inline keyboard
+                            InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(new[]
+                            {
+                                new[]
+                                {
+                                    InlineKeyboardButton.WithCallbackData("Tanlash", $"selectMeal_{dishesByDay.ElementAt(i).Id}"),
+                                }
+                            });
+
+                            // Send photo with inline keyboard
+                            string dishInfoText = $"Nomi: *{dishesByDay.ElementAt(i).Name}*\n\nNarxi: *{dishesByDay.ElementAt(i).Price} so'm*";
+                            await _telegramBotClient.SendPhotoAsync(
+                                chatId: long.Parse(cardNo),
+                                photo: photo,
+                                caption: dishInfoText,
+                                replyMarkup: inlineKeyboard,
+                                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
+                            );
+                        }
+                    }
+                }
+
+            }
         }
     }
 }

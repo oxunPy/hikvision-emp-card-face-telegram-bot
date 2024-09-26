@@ -101,5 +101,14 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
             _dbContext.SaveChanges();
             return currentEdit;
         }
+
+        public LunchMenu? GetLunchMenuByDishId(long dishId)
+        {
+            var query = $@"select l.*
+                        from ""LunchMenus"" l
+                        where l.""DishIds"" @> '[{dishId}]'";
+
+            return _dbContext.LunchMenus.FromSqlRaw(query).FirstOrDefault();
+        }
     }
 }
