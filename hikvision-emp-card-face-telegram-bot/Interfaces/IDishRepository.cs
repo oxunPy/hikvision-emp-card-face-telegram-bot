@@ -8,8 +8,6 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
 
         Dish? GetDish(long id);
 
-        ICollection<Dish> GetDishesByCategory(long categoryId);
-
         bool DishExists(long id);
 
         bool CreateDish(Dish dish);
@@ -18,7 +16,9 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
 
         bool DeleteDish(Dish dish);
 
-        ICollection<Dish> GetDishByTodaysMenu();
+        ICollection<Dish> GetDishesByTodaysMenu();
+        
+        ICollection<Dish> GetDishesByWeekDay(DayOfWeek dayOfWeek);
 
         bool Save();
     }

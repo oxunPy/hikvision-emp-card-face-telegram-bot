@@ -3,6 +3,7 @@ using hikvision_emp_card_face_telegram_bot.Data.Report;
 using hikvision_emp_card_face_telegram_bot.Entity;
 using hikvision_emp_card_face_telegram_bot.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Data.SqlClient;
 
 namespace hikvision_emp_card_face_telegram_bot.Repository
 {
@@ -61,10 +62,10 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
                       FROM ""SelectedMenus"" sm
                       JOIN ""Dishes"" d ON sm.""DishId"" = d.""Id""
                       JOIN ""Employees"" e ON sm.""EmployeeId"" = e.""Id""
-                      WHERE sm.""Date"" = now()
+                      WHERE sm.""Date"" = @today
                       GROUP BY d.""Name""";
             
-            return await _dbContext.Set<SelectedMenuReport>().FromSqlRaw(query, today).ToListAsync();
+            return await _dbContext.Set<SelectedMenuReport>().FromSqlRaw(query, new SqlParameter("today", today)).ToListAsync();
         }
     }
 }

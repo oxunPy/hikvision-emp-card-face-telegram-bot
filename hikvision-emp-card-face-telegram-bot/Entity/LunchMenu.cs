@@ -6,16 +6,6 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
 {
     public class LunchMenu
     {
-        // Enum for MenuInputStates
-        public enum MenuInputStates
-        {
-            DAY_OF_WEEK,
-            DISH_NAME,
-            DISH_IMAGE,
-            DISH_PRICE,
-            COMPLETED
-        }
-
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
@@ -26,7 +16,9 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
 
         // Storing List of Dish IDs as JSONB in PostgreSQL
         [Column(TypeName = "jsonb")]
-        public List<long>? DishIds { get; set; }
+        public List<long>? DishIds { get; set; } = new List<long>();
+
+        public bool CurrentEdit { get; set; } = false;
 
         // Convert entity to DTO
         public LunchMenuDTO ToDTO()

@@ -8,7 +8,6 @@ namespace hikvision_emp_card_face_telegram_bot.Helper
     {
         public MappingProfiles()
         {
-            CreateMap<Category, CategoryDTO>();
             CreateMap<Dish, DishDTO>();
             CreateMap<Employee, EmployeeDTO>();
             CreateMap<LunchMenu, LunchMenuDTO>();

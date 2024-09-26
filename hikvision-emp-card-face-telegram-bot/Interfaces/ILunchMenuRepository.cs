@@ -16,6 +16,12 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
 
         bool DeleteLunchMenu(LunchMenu lunchMenu);
 
+        LunchMenu? GetTodayLunchMenu();
+
+        LunchMenu? GetCurrentEditMenu();
+
+        LunchMenu? UpdateLunchMenuForCurrentEdit(DayOfWeek dayOfWeek);
+
         bool Save();
     }
 }

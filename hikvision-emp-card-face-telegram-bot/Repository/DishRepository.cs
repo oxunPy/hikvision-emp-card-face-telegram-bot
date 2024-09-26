@@ -2,6 +2,7 @@
 using hikvision_emp_card_face_telegram_bot.Entity;
 using hikvision_emp_card_face_telegram_bot.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace hikvision_emp_card_face_telegram_bot.Repository
 {
@@ -41,11 +42,6 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
             return _dbContext.Dishes.ToList();
         }
 
-        public ICollection<Dish> GetDishesByCategory(long categoryId)
-        {
-            return _dbContext.Dishes.Where(dish => dish.CategoryId == categoryId).ToList();  
-        }
-
         public bool UpdateDish(Dish dish)
         {
             _dbContext.Update(dish);
@@ -63,9 +59,17 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
             return saved > 0;
         }
 
-        public ICollection<Dish> GetDishByTodaysMenu()
+        ICollection<Dish> IDishRepository.GetDishesByWeekDay(DayOfWeek dayOfWeek)
         {
-            throw new NotImplementedException();
+            var query = @"select d.*
+                        from ""Dishes"" d
+                        inner join (
+                            select jsonb_array_elements(l.""DishIds"") DishId
+                            from ""LunchMenus"" l
+                            where ""DayOfWeek"" = @dayofweek
+                        ) t on d.""Id"" = cast (t.DishId as integer)";
+
+            return _dbContext.Dishes.FromSqlRaw(query, new NpgsqlParameter("dayofweek", (int)dayOfWeek)).ToList();
         }
     }
 }

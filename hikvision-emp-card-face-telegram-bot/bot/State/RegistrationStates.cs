@@ -1,4 +1,4 @@
-﻿namespace hikvision_emp_card_face_telegram_bot.bot.State
+﻿    namespace hikvision_emp_card_face_telegram_bot.bot.State
 {
     public enum RegistrationStates
     {

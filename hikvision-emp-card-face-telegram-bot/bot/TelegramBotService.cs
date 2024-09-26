@@ -53,7 +53,8 @@ namespace hikvision_emp_card_face_telegram_bot.bot
 
             if(update.Type == UpdateType.Message && update.Message != null)
             {
-                await _messageHandler.HandleMessageAsync(update.Message, cancellationToken);
+                await _messageHandler.HandleMessageAsync(update.Message, _callbackHandler.IsHandlingForMenuInput(update.Message.Chat.Id),
+                                                         _callbackHandler.GetMenuInputState(update.Message.Chat.Id), cancellationToken);
             }
         }
 

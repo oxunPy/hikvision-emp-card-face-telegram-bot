@@ -7,10 +7,10 @@ namespace hikvision_emp_card_face_telegram_bot.Dto
     {
         public long Id { get; set; }
 
-        [NotNull]
         public DayOfWeek DayOfWeek { get; set; }
 
-        [Required]
-        public List<long>? DishIds { get; set; } 
+        public List<long>? DishIds { get; set; } = new List<long>();
+
+        public bool CurrentEdit { get; set; } = false;
     }
 }

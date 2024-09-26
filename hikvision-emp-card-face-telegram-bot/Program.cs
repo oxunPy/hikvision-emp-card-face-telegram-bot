@@ -26,7 +26,6 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // repositories
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IDishRepository, DishRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<ILunchMenuRepository, LunchMenuRepository>();
@@ -34,7 +33,6 @@ builder.Services.AddScoped<ISelectedMenuRepository, SelectedMenuRepository>();
 builder.Services.AddScoped<ITerminalConfigurationRepository, TerminalConfigurationRepository>();
 
 // services
-builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IDishService, DishService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<ILunchMenuService, LunchMenuService>();

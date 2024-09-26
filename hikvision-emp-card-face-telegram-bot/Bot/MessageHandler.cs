@@ -9,6 +9,7 @@ using hikvision_emp_card_face_telegram_bot.bot.ActionHandler;
 using Telegram.Bot.Types.ReplyMarkups;
 using hikvision_emp_card_face_telegram_bot.Entity;
 using hikvision_emp_card_face_telegram_bot.Bot.State;
+using hikvision_emp_card_face_telegram_bot.Bot.ActionHandler;
 
 namespace hikvision_emp_card_face_telegram_bot.bot
 {
@@ -17,26 +18,29 @@ namespace hikvision_emp_card_face_telegram_bot.bot
         private readonly TelegramBotClient _botClient;
         private readonly RegisterHandler _registerHandler;
         private readonly IServiceProvider _serviceProvider;
+        private readonly MenuInputHandler _menuInputHandler;
+
 
         private Dictionary<long, RegistrationStates> _botUserRegistrationStates;
         
 
-        public MessageHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, RegisterHandler registerHandler)
+        public MessageHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, RegisterHandler registerHandler, MenuInputHandler menuInputHandler)
         {
             _botClient = botClient;
             _serviceProvider = serviceProvider;
             _registerHandler = registerHandler;
+            _menuInputHandler = menuInputHandler;
             _botUserRegistrationStates = new Dictionary<long, RegistrationStates>();
         }
 
 
-        public async Task HandleMessageAsync(Message message, CancellationToken cancellationToken)
+        public async Task HandleMessageAsync(Message message, bool isHandleForMenuInput, MenuInputStates? inputState, CancellationToken cancellationToken)
         {
             var ChatID = message.Chat.Id;
 
             try
             {
-                if(message.Type == MessageType.Text)
+                if (message.Type == MessageType.Text)
                 {
                     switch (message.Text.ToLower())
                     {
@@ -52,6 +56,12 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                             await HandleInputMenu(message);
                             return;
                     }
+                }
+
+                if(isHandleForMenuInput && inputState != null)
+                {
+                    _menuInputHandler.HandleInputMenuAsync(message, (MenuInputStates) inputState, cancellationToken);
+                    return;
                 }
 
                 // handle registration states

@@ -13,8 +13,8 @@ using hikvision_emp_card_face_telegram_bot.Data;
 namespace hikvision_emp_card_face_telegram_bot.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240925044713_init")]
-    partial class init
+    [Migration("20240925194657_update lunch menu table")]
+    partial class updatelunchmenutable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,24 +42,6 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                     b.ToView(null, (string)null);
                 });
 
-            modelBuilder.Entity("hikvision_emp_card_face_telegram_bot.Entity.Category", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Categories");
-                });
-
             modelBuilder.Entity("hikvision_emp_card_face_telegram_bot.Entity.Dish", b =>
                 {
                     b.Property<long>("Id")
@@ -68,23 +50,16 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("CategoryId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("ImagePath")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<decimal?>("Price")
-                        .IsRequired()
                         .HasColumnType("numeric");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
 
                     b.ToTable("Dishes");
                 });
@@ -116,6 +91,9 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TelegramChatId")
+                        .IsUnique();
 
                     b.ToTable("Employees");
                 });
@@ -202,17 +180,6 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                     b.ToTable("TerminalConfigurations");
                 });
 
-            modelBuilder.Entity("hikvision_emp_card_face_telegram_bot.Entity.Dish", b =>
-                {
-                    b.HasOne("hikvision_emp_card_face_telegram_bot.Entity.Category", "Category")
-                        .WithMany("Dishes")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
             modelBuilder.Entity("hikvision_emp_card_face_telegram_bot.Entity.SelectedMenu", b =>
                 {
                     b.HasOne("hikvision_emp_card_face_telegram_bot.Entity.Dish", "Dish")
@@ -230,11 +197,6 @@ namespace hikvision_emp_card_face_telegram_bot.Migrations
                     b.Navigation("Dish");
 
                     b.Navigation("Employee");
-                });
-
-            modelBuilder.Entity("hikvision_emp_card_face_telegram_bot.Entity.Category", b =>
-                {
-                    b.Navigation("Dishes");
                 });
 #pragma warning restore 612, 618
         }
