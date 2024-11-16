@@ -17,5 +17,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service
         void CreateNewHikiEmployee(long chatId);
 
         void SendFaceData(long chatId, string filePath);
+
+        bool OrderedTodaysMenu(long chatId);
     }
 }

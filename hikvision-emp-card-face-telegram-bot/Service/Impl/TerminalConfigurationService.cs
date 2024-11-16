@@ -125,6 +125,19 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
+                var _employeeService = scope.ServiceProvider.GetService<IEmployeeService>();
+                bool isOrderedForToday = _employeeService.OrderedTodaysMenu(long.Parse(cardNo));
+                if(isOrderedForToday)
+                {
+                    await _telegramBotClient.SendTextMessageAsync(
+                        chatId: long.Parse(cardNo),
+                        "*Siz oldin buyurtma bergansiz!*",
+                        parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
+                        );
+                    return;
+                }
+
+
                 var _dishService = scope.ServiceProvider.GetService<IDishService>();
                 ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DateTime.Now.DayOfWeek);
 

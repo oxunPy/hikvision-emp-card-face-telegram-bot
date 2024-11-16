@@ -19,5 +19,6 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
         bool Save();
         Employee? FindByTelegramChatId(long chatId);
 
+        bool ExistsEmployeeSelectedMenu(long chatId);
     }
 }

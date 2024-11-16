@@ -130,6 +130,14 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
             return _mapper.Map<EmployeeDTO>(_employeeRepository.FindByTelegramChatId(chatID));
         }
 
+
+        [HttpGet("/exists-menu")]
+        public bool CheckExistsSelectedMenu([FromQuery(Name = "chat_id")] long chatID)
+        {
+            return _employeeRepository.ExistsEmployeeSelectedMenu(chatID);
+        }
+
+
         private void SendCardData(String cardNo, String cardRightPlan, String employeeNo, String name)
         {
             CHCNetSDKForCard.NET_DVR_CARD_RECORD struData = new CHCNetSDKForCard.NET_DVR_CARD_RECORD();

@@ -1,6 +1,9 @@
 ﻿using hikvision_emp_card_face_telegram_bot.Data;
 using hikvision_emp_card_face_telegram_bot.Entity;
 using hikvision_emp_card_face_telegram_bot.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using System;
 
 namespace hikvision_emp_card_face_telegram_bot.Repository
 {
@@ -55,5 +58,18 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
         {
             return _dbContext.Employees.Where(x => x.TelegramChatId == chatId.ToString()).FirstOrDefault();
         }
+
+        public bool ExistsEmployeeSelectedMenu(long chatId)
+        {
+            var query = @"
+                        select e.*
+                        from ""Employees"" e
+                        left join ""SelectedMenus"" s on e.""Id"" = s.""EmployeeId""
+                        where cast(e.""TelegramChatId"" as bigint) = @chatId and date_trunc('day', s.""Date"") = date_trunc('day', now())";
+
+            var result = _dbContext.Employees.FromSqlRaw(query, new NpgsqlParameter("chatId", chatId)).FirstOrDefault();
+            return result != null && result.Id != null;
+        }
+
     }
 }

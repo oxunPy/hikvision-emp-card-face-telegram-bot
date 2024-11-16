@@ -9,6 +9,7 @@ using hikvision_emp_card_face_telegram_bot.Repository;
 using System.Data;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
 namespace hikvision_emp_card_face_telegram_bot.Service.Impl
@@ -163,6 +164,14 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
                 SendCardData(cardNo, cardRightPlan, employeeNo, name);
                 Marshal.FreeHGlobal(ptrStruCond);
             }
+        }
+
+        public bool OrderedTodaysMenu(long chatID)
+        {
+            if (chatID == null || chatID == 0)
+                return false;
+
+            return _employeeRepository.ExistsEmployeeSelectedMenu(chatID);
         }
 
         private void SendCardData(string cardNo, string cardRightPlan, string employeeNo, string name)
@@ -403,5 +412,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             }
 
         }
+
+
     }
 }

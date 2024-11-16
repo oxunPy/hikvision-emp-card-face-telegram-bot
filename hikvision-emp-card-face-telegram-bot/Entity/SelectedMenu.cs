@@ -25,7 +25,7 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
         public decimal? DiscountPrice { get; set; }
 
         public decimal? DiscountPercent { get; set; }   
-
+            
 
         // Convert entity to DTO
         public SelectedMenuDTO ToDTO() 
