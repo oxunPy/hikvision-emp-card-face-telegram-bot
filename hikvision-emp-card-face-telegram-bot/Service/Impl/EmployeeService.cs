@@ -174,6 +174,20 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             return _employeeRepository.ExistsEmployeeSelectedMenu(chatID);
         }
 
+        public bool RemoveImgInCaseErrorRecognize(long chatID)
+        {
+            if (chatID == null || chatID == 0)
+                return false;
+
+            Employee botUser = _employeeRepository.FindByTelegramChatId(chatID);
+            if (botUser == null)
+                return false;
+
+            botUser.FaceImagePath = null;
+            _employeeRepository.UpdateEmployee(botUser);
+            return true;
+        }
+
         private void SendCardData(string cardNo, string cardRightPlan, string employeeNo, string name)
         {
             CHCNetSDKForCard.NET_DVR_CARD_RECORD struData = new CHCNetSDKForCard.NET_DVR_CARD_RECORD();
@@ -413,6 +427,17 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
 
         }
 
+        public EmployeeDTO? UpdateBotUserVisitDate(EmployeeDTO dto)
+        {
+            Employee entity = _employeeRepository.FindByTelegramChatId(long.Parse(dto.TelegramChatId));
+            // Specify the time zone (e.g., UTC -5)
+            TimeZoneInfo uzbekistanTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Tashkent"); // Example for UTC -5
 
-    }
+            entity.VisitedDate = TimeZoneInfo.ConvertTimeFromUtc(dto.VisitedDate.Value.ToUniversalTime(), uzbekistanTimeZone);
+            entity.VisitedDate = DateTime.SpecifyKind(entity.VisitedDate.Value, DateTimeKind.Utc);
+            entity.PositionEmp = dto.PositionEmp;
+            bool result = _employeeRepository.UpdateEmployee(entity);
+            return result ? _mapper.Map<EmployeeDTO>(entity) : null;
+        }
+    }   
 }

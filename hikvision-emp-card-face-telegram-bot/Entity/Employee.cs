@@ -31,6 +31,8 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
 
         public string? HikCardCode {  get; set; }
 
+        public DateTime? VisitedDate { get; set; }
+
         public EmployeeDTO ToDTO()
         {
             return new EmployeeDTO
@@ -40,7 +42,8 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
                 LastName = this.LastName,
                 FaceImagePath = this.FaceImagePath,
                 TelegramChatId = this.TelegramChatId,
-                PositionEmp = this.PositionEmp
+                PositionEmp = this.PositionEmp,
+                VisitedDate = this.VisitedDate
             };
         }
     }

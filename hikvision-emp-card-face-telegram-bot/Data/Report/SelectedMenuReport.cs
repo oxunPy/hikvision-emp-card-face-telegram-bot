@@ -3,7 +3,7 @@
     public class SelectedMenuReport
     {
         public string? DishName { get; set; }
-        public int? Quantity { get; set; }
+        public int? DiscountPercent { get; set; }
         public string? EmployeeNames { get; set; }
     }
 }

@@ -19,7 +19,7 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
         [HttpGet]
         public async Task<ICollection<SelectedMenuReport>> getSelectedMenuReport([FromQuery(Name = "date")] string date)
         {
-            return await _selectedMenuRepository.findTodaySelectedMenus(DateTime.Now.ToUniversalTime());
+            return await _selectedMenuRepository.findTodaySelectedMenus(DateTime.Now.Date.ToUniversalTime());
         }
     }
 }

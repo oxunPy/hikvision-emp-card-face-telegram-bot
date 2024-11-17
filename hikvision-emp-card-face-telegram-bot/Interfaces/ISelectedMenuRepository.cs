@@ -22,5 +22,6 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
         SelectedMenu? GetTodaysSelectedMenuByEmployeeChatId(long chatId);
 
         Task<ICollection<SelectedMenuReport?>> findTodaySelectedMenus(DateTime today);
+        Task<ICollection<SelectedMenuReport?>> findTodaySelectedMenusReportDaily(DateTime today);
     }
 }

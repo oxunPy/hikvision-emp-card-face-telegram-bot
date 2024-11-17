@@ -13,6 +13,12 @@ namespace hikvision_emp_card_face_telegram_bot.Helper
             CreateMap<LunchMenu, LunchMenuDTO>();
             CreateMap<SelectedMenu, SelectedMenuDTO>();
             CreateMap<TerminalConfiguration, TerminalConfigurationDTO>();
+
+            CreateMap<DishDTO, Dish>();
+            CreateMap<EmployeeDTO, Employee>();
+            CreateMap<LunchMenuDTO, LunchMenu>();
+            CreateMap<SelectedMenuDTO, SelectedMenu>();
+            CreateMap<TerminalConfigurationDTO, TerminalConfiguration>();
         }
     }
 }

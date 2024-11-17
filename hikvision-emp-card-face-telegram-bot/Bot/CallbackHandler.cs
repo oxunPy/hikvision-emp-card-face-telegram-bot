@@ -245,5 +245,11 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
             if (_botUserMenuInputStates.ContainsKey(chatId))
                 _botUserMenuInputStates[chatId] = state;
         }
+
+        public void completeStateIfGivenMessageCommand(long chatId)
+        {
+            if (_botUserMenuInputStates.ContainsKey(chatId))
+                _botUserMenuInputStates.Remove(chatId);
+        }
     }
 }

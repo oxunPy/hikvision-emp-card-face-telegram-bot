@@ -38,6 +38,7 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<ILunchMenuService, LunchMenuService>();
 builder.Services.AddScoped<ISelectedMenuService, SelectedMenuService>();
 builder.Services.AddScoped<ITerminalConfigurationService, TerminalConfigurationService>();
+builder.Services.AddScoped<CommonResponses>();
 
 // Register the bot
 builder.Services.AddSingleton<TelegramBotClient>(provider =>

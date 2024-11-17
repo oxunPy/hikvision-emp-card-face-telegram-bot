@@ -17,5 +17,7 @@ namespace hikvision_emp_card_face_telegram_bot.Dto
         public Employee.Position? PositionEmp { get; set; }    
 
         public string? HikCardCode { get; set; }
+
+        public DateTime? VisitedDate { get; set; }
     }
 }

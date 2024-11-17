@@ -1,6 +1,8 @@
 ﻿using hikvision_emp_card_face_telegram_bot.bot.State;
 using hikvision_emp_card_face_telegram_bot.Entity;
 using hikvision_emp_card_face_telegram_bot.Service;
+using System.Drawing;
+using System.Drawing.Imaging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -16,7 +18,7 @@ namespace hikvision_emp_card_face_telegram_bot.bot.ActionHandler
         {
             _botClient = botClient;
             _serviceProvider = serviceProvider;
-        }   
+        }
 
         public async Task HandleRegistrationAsync(Message message, RegistrationStates state, CancellationToken cancellationToken)
         {
@@ -58,10 +60,10 @@ namespace hikvision_emp_card_face_telegram_bot.bot.ActionHandler
                         case RegistrationStates.EMPLOYEE_POSITION:
                             _employeeService.UpdateByChatID(message.Chat.Id, RegistrationStates.EMPLOYEE_POSITION, new Dto.EmployeeDTO
                             {
-                                PositionEmp = (Employee.Position) Enum.Parse(typeof(Employee.Position), message.Text)
+                                PositionEmp = (Employee.Position)Enum.Parse(typeof(Employee.Position), message.Text)
                             });
 
-                            if(Enum.Parse(typeof(Employee.Position), message.Text).Equals(Employee.Position.EMPLOYEE))
+                            if (Enum.Parse(typeof(Employee.Position), message.Text).Equals(Employee.Position.EMPLOYEE))
                             {
                                 await _botClient.SendTextMessageAsync(
                                 chatId: message.Chat.Id,
@@ -77,12 +79,12 @@ namespace hikvision_emp_card_face_telegram_bot.bot.ActionHandler
                                     replyMarkup: new ReplyKeyboardRemove()
                                     );
                             }
-                           
+
                             break;
 
 
                         case RegistrationStates.FACE_UPLOAD:
-                            if(message.Photo != null && message.Photo.Length > 0)
+                            if (message.Photo != null && message.Photo.Length > 0)
                             {
                                 string filePath = await SaveUploadedPhoto(message, cancellationToken);
                                 _employeeService.UpdateByChatID(message.Chat.Id, RegistrationStates.FACE_UPLOAD, new Dto.EmployeeDTO

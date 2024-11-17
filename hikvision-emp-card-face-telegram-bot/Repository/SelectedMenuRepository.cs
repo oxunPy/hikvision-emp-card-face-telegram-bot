@@ -59,16 +59,29 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
         public async Task<ICollection<SelectedMenuReport?>> findTodaySelectedMenus(DateTime today)
         {
             var query = @"SELECT d.""Name"" as ""DishName"", COUNT(sm.""Id"") as Quantity, 
-                             STRING_AGG(e.""FirstName"" || ' ' || e.""LastName"" || ' - ' || sm.""DiscountPrice"" || ' UZS', ', ') AS EmployeeNames
+                             STRING_AGG(e.""FirstName"" || ' ' || e.""LastName"" || ' - ' || COALESCE(sm.""DiscountPrice"", 0) || ' UZS', ', ') AS EmployeeNames
                       FROM ""SelectedMenus"" sm
                       JOIN ""Dishes"" d ON sm.""DishId"" = d.""Id""
                       JOIN ""Employees"" e ON sm.""EmployeeId"" = e.""Id""
-                      WHERE sm.""Date"" = @today
+                      WHERE DATE_TRUNC('day', sm.""Date"") = @today
                       GROUP BY d.""Name""";
             
-            return await _dbContext.Set<SelectedMenuReport>().FromSqlRaw(query, new SqlParameter("today", today)).ToListAsync();
+            return await _dbContext.Set<SelectedMenuReport>().FromSqlRaw(query, new NpgsqlParameter("today", today)).ToListAsync();
+        }
+         public async Task<ICollection<SelectedMenuReport?>> findTodaySelectedMenusReportDaily(DateTime today)
+        {
+            var query = @"SELECT d.""Name"" as ""DishName"",
+                               sm.""DiscountPercent"",
+                               (e.""FirstName"" || ' ' || e.""LastName"" || ' - ' || COALESCE(d.""Price"", 0) || ' UZS') AS EmployeeNames
+                        FROM ""SelectedMenus"" sm
+                        JOIN ""Dishes"" d ON sm.""DishId"" = d.""Id""
+                        JOIN ""Employees"" e ON sm.""EmployeeId"" = e.""Id""
+                        WHERE DATE_TRUNC('day', sm.""Date"") = @today";
+            
+            return await _dbContext.Set<SelectedMenuReport>().FromSqlRaw(query, new NpgsqlParameter("today", today)).ToListAsync();
         }
 
+        
         public SelectedMenu? GetTodaysSelectedMenuByEmployeeChatId(long chatId)
         {
             var query = @"select slm.*

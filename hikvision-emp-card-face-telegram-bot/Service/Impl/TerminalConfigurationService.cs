@@ -127,7 +127,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             {
                 var _employeeService = scope.ServiceProvider.GetService<IEmployeeService>();
                 bool isOrderedForToday = _employeeService.OrderedTodaysMenu(long.Parse(cardNo));
-                if(isOrderedForToday)
+                if (isOrderedForToday)
                 {
                     await _telegramBotClient.SendTextMessageAsync(
                         chatId: long.Parse(cardNo),
@@ -138,45 +138,80 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
                 }
 
 
-                var _dishService = scope.ServiceProvider.GetService<IDishService>();
-                ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DateTime.Now.DayOfWeek);
 
-                await _telegramBotClient.SendTextMessageAsync(
-                chatId: long.Parse(cardNo),
-                "*Bugungi kun uchun taom tanlang!*",
-                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
-                );
-
-                if (dishesByDay != null && dishesByDay.Count > 0)
+                var employee = _employeeService.FindByChatID(long.Parse(cardNo));
+                // period checking
+                DateTime now = DateTime.Now;
+                // Define the start and end times for the period today
+                DateTime startTime = DateTime.Today.Date.AddHours(9);
+                DateTime endTime = DateTime.Today.Date.AddHours(10).AddMinutes(30);
+                if (now >= startTime && now <= endTime)
                 {
-                    for (int i = 0; i < dishesByDay.Count; i++)
+                    if (employee.VisitedDate != null && employee.VisitedDate >= startTime && employee.VisitedDate <= endTime)
                     {
-                        // Load the image file
-                        using (FileStream fs = new FileStream(dishesByDay.ElementAt(i).ImagePath, FileMode.Open, FileAccess.Read))
-                        {
-                            var photo = InputFile.FromStream(fs);
-
-                            // Create inline keyboard
-                            InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(new[]
-                            {
-                                new[]
-                                {
-                                    InlineKeyboardButton.WithCallbackData("Tanlash", $"selectMeal_{dishesByDay.ElementAt(i).Id}"),
-                                }
-                            });
-
-                            // Send photo with inline keyboard
-                            string dishInfoText = $"Nomi: *{dishesByDay.ElementAt(i).Name}*\n\nNarxi: *{dishesByDay.ElementAt(i).Price} so'm*";
-                            await _telegramBotClient.SendPhotoAsync(
+                        await _telegramBotClient.SendTextMessageAsync(
                                 chatId: long.Parse(cardNo),
-                                photo: photo,
-                                caption: dishInfoText,
-                                replyMarkup: inlineKeyboard,
-                                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
+                                "Siz bugun identifikatsiyadan o'tkansiz! \n" +
+                                $"Kelish vaqti: {((DateTime)employee.VisitedDate).ToString("yyyy-MM-dd HH:mm")}"
                             );
+                    }
+                    else
+                    {
+                        employee.VisitedDate = DateTime.UtcNow;
+                        _employeeService.UpdateBotUserVisitDate(employee);
+
+                        var _dishService = scope.ServiceProvider.GetService<IDishService>();
+                        //ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DateTime.Now.DayOfWeek);
+                        ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DayOfWeek.Monday);
+
+                        await _telegramBotClient.SendTextMessageAsync(
+                               chatId: long.Parse(cardNo),
+                               "*Bugungi kun uchun taom tanlang!*",
+                               parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
+                           );
+
+                        if (dishesByDay != null && dishesByDay.Count > 0)
+                        {
+                            for (int i = 0; i < dishesByDay.Count; i++)
+                            {
+                                // Load the image file
+                                using (FileStream fs = new FileStream(dishesByDay.ElementAt(i).ImagePath, FileMode.Open, FileAccess.Read))
+                                {
+                                    var photo = InputFile.FromStream(fs);
+
+                                    // Create inline keyboard
+                                    InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(new[]
+                                    {
+                                        new[]
+                                        {
+                                            InlineKeyboardButton.WithCallbackData("Tanlash", $"selectMeal_{dishesByDay.ElementAt(i).Id}"),
+                                        }
+                                    });
+
+                                    // Send photo with inline keyboard
+                                    string dishInfoText = $"Nomi: *{dishesByDay.ElementAt(i).Name}*\n\nNarxi: *{dishesByDay.ElementAt(i).Price} so'm*";
+                                    await _telegramBotClient.SendPhotoAsync(
+                                        chatId: long.Parse(cardNo),
+                                        photo: photo,
+                                        caption: dishInfoText,
+                                        replyMarkup: inlineKeyboard,
+                                        parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown
+                                    );
+                                }
+                            }
                         }
+
                     }
                 }
+
+                else
+                {
+                    await _telegramBotClient.SendTextMessageAsync(
+                                chatId: long.Parse(cardNo),
+                                "Bugungi kun uchun buyurtma berish vaqti tugadi!"
+                            );
+                }
+
 
             }
         }
