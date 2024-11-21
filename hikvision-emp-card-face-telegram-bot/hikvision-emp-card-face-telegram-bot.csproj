@@ -36,6 +36,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    <PackageReference Include="Quartz" Version="3.13.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
@@ -44,6 +45,7 @@
 
   <ItemGroup>
     <Folder Include="Bot\NewFolder\" />
+    <Folder Include="NewFolder\" />
     <Folder Include="wwwroot\dishes\" />
     <Folder Include="wwwroot\faces\" />
   </ItemGroup>

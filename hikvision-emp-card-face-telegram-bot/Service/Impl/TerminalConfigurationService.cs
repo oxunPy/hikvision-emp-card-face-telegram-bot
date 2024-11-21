@@ -17,13 +17,15 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
         private readonly TelegramBotClient _telegramBotClient;
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
+        private CHCNetSDKForCard.MSGCallBack_V31 msgCallback;
+
         public TerminalConfigurationService(ILogger<TerminalConfigurationService> logger, TelegramBotClient telegramBotClient, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _telegramBotClient = telegramBotClient;
             _serviceScopeFactory = serviceScopeFactory;
+            msgCallback = new CHCNetSDKForCard.MSGCallBack_V31(SetupAlarmChanCallback);
         }
-
 
         public void AutoLogin(string username, string password)
         {
@@ -36,7 +38,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             CHCNetSDKForCard.NET_DVR_DEVICEINFO_V40 struDeviceInfoV40 = new CHCNetSDKForCard.NET_DVR_DEVICEINFO_V40();
             struDeviceInfoV40.struDeviceV30.sSerialNumber = new byte[CHCNetSDKForCard.SERIALNO_LEN];
 
-            struLoginInfo.sDeviceAddress = "192.168.7.249";
+            struLoginInfo.sDeviceAddress = "192.168.7.33";
             struLoginInfo.sUserName = username;
             struLoginInfo.sPassword = password;
             ushort.TryParse("8000", out struLoginInfo.wPort);
@@ -48,7 +50,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
                 m_UserID = lUserID;
                 _logger.LogInformation("Login Successful");
 
-                bool b = CHCNetSDKForCard.NET_DVR_SetDVRMessageCallBack_V31(SetupAlarmChanCallback, IntPtr.Zero);
+                bool b = CHCNetSDKForCard.NET_DVR_SetDVRMessageCallBack_V31(msgCallback, IntPtr.Zero);
                 if (b)
                 {
                     _logger.LogInformation("Set callback successfully");
@@ -200,7 +202,6 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
                                 }
                             }
                         }
-
                     }
                 }
 

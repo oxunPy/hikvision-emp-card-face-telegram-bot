@@ -8,6 +8,7 @@ using hikvision_emp_card_face_telegram_bot.Bot.ActionHandler;
 using hikvision_emp_card_face_telegram_bot.Data;
 using hikvision_emp_card_face_telegram_bot.Interfaces;
 using hikvision_emp_card_face_telegram_bot.Repository;
+using hikvision_emp_card_face_telegram_bot.scheduling;
 using hikvision_emp_card_face_telegram_bot.Service;
 using hikvision_emp_card_face_telegram_bot.Service.Impl;
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +38,6 @@ builder.Services.AddScoped<IDishService, DishService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<ILunchMenuService, LunchMenuService>();
 builder.Services.AddScoped<ISelectedMenuService, SelectedMenuService>();
-builder.Services.AddScoped<ITerminalConfigurationService, TerminalConfigurationService>();
 builder.Services.AddScoped<CommonResponses>();
 
 // Register the bot
@@ -51,6 +51,9 @@ builder.Services.AddSingleton<CallbackHandler>();
 builder.Services.AddSingleton<MessageHandler>();
 builder.Services.AddSingleton<RegisterHandler>();
 builder.Services.AddSingleton<MenuInputHandler>();
+builder.Services.AddSingleton<ITerminalConfigurationService, TerminalConfigurationService>();
+
+builder.Services.AddHostedService<SchedulingHikvisionStartup>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

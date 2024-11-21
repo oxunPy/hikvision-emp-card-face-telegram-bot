@@ -19,10 +19,13 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
         private readonly ILogger<TerminalConfigurationController> _logger;
         private readonly ITerminalConfigurationService _terminalConfigurationService;
 
+        private CHCNetSDKForCard.MSGCallBack_V31 msgCallback;
+
         public TerminalConfigurationController(ILogger<TerminalConfigurationController> logger, ITerminalConfigurationService terminalConfigurationService)
         {
             _logger = logger;
             _terminalConfigurationService = terminalConfigurationService;
+            msgCallback = new CHCNetSDKForCard.MSGCallBack_V31(SetupAlarmChanCallback);
         }
 
         [HttpGet("/bot-login-hiki")]
@@ -58,7 +61,7 @@ namespace hikvision_emp_card_face_telegram_bot.Controllers
                 m_UserID = lUserID;
                 _logger.LogInformation("Login Successful");
 
-                bool b = CHCNetSDKForCard.NET_DVR_SetDVRMessageCallBack_V31(SetupAlarmChanCallback, IntPtr.Zero);
+                bool b = CHCNetSDKForCard.NET_DVR_SetDVRMessageCallBack_V31(msgCallback, IntPtr.Zero);
                 if (b)
                 {
                     _logger.LogInformation("Set callback successfully");
