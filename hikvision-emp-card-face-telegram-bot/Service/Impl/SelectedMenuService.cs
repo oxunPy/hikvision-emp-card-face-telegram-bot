@@ -11,13 +11,15 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
         private readonly ISelectedMenuRepository _selectedMenuRepository;
         private readonly IDishRepository _dishRepository;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
-        public SelectedMenuService(IEmployeeRepository employeeRepository, ISelectedMenuRepository selectedMenuRepository, IDishRepository dishRepository, IMapper mapper)
+        public SelectedMenuService(IEmployeeRepository employeeRepository, ISelectedMenuRepository selectedMenuRepository, IDishRepository dishRepository, IMapper mapper, IConfiguration configuration)
         {
             _employeeRepository = employeeRepository;
             _selectedMenuRepository = selectedMenuRepository;
             _dishRepository = dishRepository;
             _mapper = mapper;
+            _configuration = configuration;
         }
 
         public bool CreateOrUpdateSelectedMenuIfDeletedMeal(long chatId, long mealId)
@@ -38,14 +40,15 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
                 {
                     // discount calculation
                     DateTime visitedDate = empByChatID.VisitedDate == null ? DateTime.Now : (DateTime)empByChatID.VisitedDate;
-                    DateTime time70 = DateTime.Now.Date.AddHours(9).AddMinutes(30);
-                    DateTime time50 = DateTime.Now.Date.AddHours(10);
+                    DateTime time70 = DateTime.Now.Date.AddHours(_configuration.GetValue<int>("LunchTime:StartHour")).AddMinutes(_configuration.GetValue<int>("LunchTime:ShortenDiscountTime"));
+                    DateTime time50 = DateTime.Now.Date.AddHours(_configuration.GetValue<int>("LunchTime:EndHour"));
+                    DateTime time30 = DateTime.Now.Date.AddHours(_configuration.GetValue<int>("LunchTime:EndHour")).AddMinutes(_configuration.GetValue<int>("LunchTime:ShortenDiscountTime"));
 
                     if (visitedDate < time70)
                         entity.DiscountPercent = 70;
                     else if (visitedDate < time50)
                         entity.DiscountPercent = 50;
-                    else
+                    else if(visitedDate < time30)
                         entity.DiscountPercent = 30;
                 }
                 

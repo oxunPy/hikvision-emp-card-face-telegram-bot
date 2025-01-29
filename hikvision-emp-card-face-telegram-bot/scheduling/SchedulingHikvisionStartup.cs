@@ -23,7 +23,7 @@ namespace hikvision_emp_card_face_telegram_bot.scheduling
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(DoLogin, null, TimeSpan.FromMinutes(1), TimeSpan.FromDays(7));
+            _timer = new Timer(DoLogin, null, TimeSpan.FromSeconds(20), TimeSpan.FromDays(2));
             return Task.CompletedTask;
         }
 

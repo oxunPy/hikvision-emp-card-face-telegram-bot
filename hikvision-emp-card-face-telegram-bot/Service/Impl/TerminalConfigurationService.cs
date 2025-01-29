@@ -16,15 +16,17 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
         private readonly ILogger<TerminalConfigurationService> _logger;
         private readonly TelegramBotClient _telegramBotClient;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IConfiguration _configuration;
 
         private CHCNetSDKForCard.MSGCallBack_V31 msgCallback;
 
-        public TerminalConfigurationService(ILogger<TerminalConfigurationService> logger, TelegramBotClient telegramBotClient, IServiceScopeFactory serviceScopeFactory)
+        public TerminalConfigurationService(ILogger<TerminalConfigurationService> logger, TelegramBotClient telegramBotClient, IServiceScopeFactory serviceScopeFactory, IConfiguration configuration)
         {
             _logger = logger;
             _telegramBotClient = telegramBotClient;
             _serviceScopeFactory = serviceScopeFactory;
             msgCallback = new CHCNetSDKForCard.MSGCallBack_V31(SetupAlarmChanCallback);
+            _configuration = configuration;
         }
 
         public void AutoLogin(string username, string password)
@@ -38,7 +40,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             CHCNetSDKForCard.NET_DVR_DEVICEINFO_V40 struDeviceInfoV40 = new CHCNetSDKForCard.NET_DVR_DEVICEINFO_V40();
             struDeviceInfoV40.struDeviceV30.sSerialNumber = new byte[CHCNetSDKForCard.SERIALNO_LEN];
 
-            struLoginInfo.sDeviceAddress = "192.168.7.33";
+            struLoginInfo.sDeviceAddress = "192.168.7.249";
             struLoginInfo.sUserName = username;
             struLoginInfo.sPassword = password;
             ushort.TryParse("8000", out struLoginInfo.wPort);
@@ -145,8 +147,8 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
                 // period checking
                 DateTime now = DateTime.Now;
                 // Define the start and end times for the period today
-                DateTime startTime = DateTime.Today.Date.AddHours(9);
-                DateTime endTime = DateTime.Today.Date.AddHours(10).AddMinutes(30);
+                DateTime startTime = DateTime.Today.Date.AddHours(_configuration.GetValue<int>("LunchTime:StartHour")).AddMinutes(_configuration.GetValue<int>("LunchTime:StartMinute"));
+                DateTime endTime = DateTime.Today.Date.AddHours(_configuration.GetValue<int>("LunchTime:StartHour")).AddMinutes(_configuration.GetValue<int>("LunchTime:EndMinute"));
                 if (now >= startTime && now <= endTime)
                 {
                     if (employee.VisitedDate != null && employee.VisitedDate >= startTime && employee.VisitedDate <= endTime)
@@ -163,8 +165,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
                         _employeeService.UpdateBotUserVisitDate(employee);
 
                         var _dishService = scope.ServiceProvider.GetService<IDishService>();
-                        //ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DateTime.Now.DayOfWeek);
-                        ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DayOfWeek.Monday);
+                        ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DateTime.Now.DayOfWeek);
 
                         await _telegramBotClient.SendTextMessageAsync(
                                chatId: long.Parse(cardNo),

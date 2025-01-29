@@ -23,18 +23,19 @@ namespace hikvision_emp_card_face_telegram_bot.bot
         private readonly RegisterHandler _registerHandler;
         private readonly IServiceProvider _serviceProvider;
         private readonly MenuInputHandler _menuInputHandler;
+        private readonly IConfiguration _configuration;
 
 
         private Dictionary<long, RegistrationStates> _botUserRegistrationStates;
 
-
-        public MessageHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, RegisterHandler registerHandler, MenuInputHandler menuInputHandler)
+        public MessageHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, RegisterHandler registerHandler, MenuInputHandler menuInputHandler, IConfiguration configuration)
         {
             _botClient = botClient;
             _serviceProvider = serviceProvider;
             _registerHandler = registerHandler;
             _menuInputHandler = menuInputHandler;
             _botUserRegistrationStates = new Dictionary<long, RegistrationStates>();
+            _configuration = configuration;
         }
 
 
@@ -154,8 +155,8 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                 {
                     // check the order period is valid!
                     DateTime visitedDate = botUser.VisitedDate == null ? DateTime.Now : (DateTime) botUser.VisitedDate;
-                    DateTime startDate = DateTime.Now.Date.AddHours(9);
-                    DateTime endDate = DateTime.Now.Date.AddHours(10).AddMinutes(30);
+                    DateTime startDate = DateTime.Now.Date.AddHours(_configuration.GetValue<int>("LunchTime:StartHour"));
+                    DateTime endDate = DateTime.Now.Date.AddHours(_configuration.GetValue<int>("LunchTime:EndHour")).AddMinutes(_configuration.GetValue<int>("LunchTime:EndMinute"));
 
                     if (botUser.PositionEmp == Employee.Position.EMPLOYEE)
                     {

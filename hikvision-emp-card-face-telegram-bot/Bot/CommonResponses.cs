@@ -19,8 +19,7 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
 
         public async Task DishListInlineResponse(long chatId, DayOfWeek dayOfWeek)
         {
-            //ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DateTime.Now.DayOfWeek);
-            ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DayOfWeek.Monday);
+            ICollection<DishDTO> dishesByDay = _dishService.GetDishesByWeekDay(DateTime.Now.DayOfWeek);
 
             await _botClient.SendTextMessageAsync(
                    chatId: chatId,
