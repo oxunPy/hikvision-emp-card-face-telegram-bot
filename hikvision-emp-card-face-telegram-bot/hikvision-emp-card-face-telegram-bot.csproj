@@ -16,10 +16,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Bot\NewFolder\**" />
     <Compile Remove="bot\Statet\**" />
+    <Compile Remove="NewFolder\**" />
+    <Content Remove="Bot\NewFolder\**" />
     <Content Remove="bot\Statet\**" />
+    <Content Remove="NewFolder\**" />
+    <EmbeddedResource Remove="Bot\NewFolder\**" />
     <EmbeddedResource Remove="bot\Statet\**" />
+    <EmbeddedResource Remove="NewFolder\**" />
+    <None Remove="Bot\NewFolder\**" />
     <None Remove="bot\Statet\**" />
+    <None Remove="NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,8 +52,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Bot\NewFolder\" />
-    <Folder Include="NewFolder\" />
     <Folder Include="wwwroot\dishes\" />
     <Folder Include="wwwroot\faces\" />
   </ItemGroup>
