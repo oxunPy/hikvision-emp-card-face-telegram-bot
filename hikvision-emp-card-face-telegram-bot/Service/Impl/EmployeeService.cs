@@ -431,7 +431,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
         {
             Employee entity = _employeeRepository.FindByTelegramChatId(long.Parse(dto.TelegramChatId));
             // Specify the time zone (e.g., UTC -5)
-            TimeZoneInfo uzbekistanTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Tashkent"); // Example for UTC -5
+            TimeZoneInfo uzbekistanTimeZone = TimeZoneInfo.FindSystemTimeZoneById("West Asia Standard Time"); // Example for UTC -5
 
             entity.VisitedDate = TimeZoneInfo.ConvertTimeFromUtc(dto.VisitedDate.Value.ToUniversalTime(), uzbekistanTimeZone);
             entity.VisitedDate = DateTime.SpecifyKind(entity.VisitedDate.Value, DateTimeKind.Utc);
