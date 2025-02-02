@@ -10,7 +10,6 @@ namespace hikvision_emp_card_face_telegram_bot.scheduling
         private readonly ITerminalConfigurationService _terminalConfigurationService;
         private Timer _timer;
 
-
         public SchedulingHikvisionStartup(ITerminalConfigurationService terminalConfigurationService)
         {
             _terminalConfigurationService = terminalConfigurationService;

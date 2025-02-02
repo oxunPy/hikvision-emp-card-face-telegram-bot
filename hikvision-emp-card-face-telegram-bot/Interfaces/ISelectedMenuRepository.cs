@@ -23,5 +23,6 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
 
         Task<ICollection<SelectedMenuReport?>> findTodaySelectedMenus(DateTime today);
         Task<ICollection<SelectedMenuReport?>> findTodaySelectedMenusReportDaily(DateTime today);
+        Task<ICollection<SelectedMenuReportInMonth?>> findInMonthSelectedMenusReport(DateTime today_30);
     }
 }

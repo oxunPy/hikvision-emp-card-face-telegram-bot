@@ -1,5 +1,6 @@
 ﻿using hikvision_emp_card_face_telegram_bot.Bot.State;
 using hikvision_emp_card_face_telegram_bot.Dto;
+using hikvision_emp_card_face_telegram_bot.Entity;
 using hikvision_emp_card_face_telegram_bot.Service;
 using System.Linq;
 using Telegram.Bot;
@@ -13,13 +14,16 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
     {
         private readonly TelegramBotClient _botClient;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IConfiguration _configuration;
         private Dictionary<long, MenuInputStates> _botUserMenuInputStates;
 
 
-        public CallbackHandler(TelegramBotClient botClient, IServiceProvider serviceProvider)
+
+        public CallbackHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, IConfiguration configuration)
         {
             _botClient = botClient;
             _serviceProvider = serviceProvider;
+            _configuration = configuration;
             _botUserMenuInputStates = new Dictionary<long, MenuInputStates>();
         }
 
@@ -58,6 +62,8 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
                         case "meallist3":
                         case "meallist4":
                         case "meallist5":
+                        case "meallist6":
+                        case "meallist0":
                             await HandleMealListAsync(callbackQuery);
                             break;
                         case "addmeal1":
@@ -65,6 +71,8 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
                         case "addmeal3":
                         case "addmeal4":
                         case "addmeal5":
+                        case "addmeal6":
+                        case "addmeal0":
                             await HandleAddMealListAsync(callbackQuery);
                             break;
 
@@ -88,19 +96,29 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
                             var _dishService = scope.ServiceProvider.GetService<IDishService>();
                             var _lunchService = scope.ServiceProvider.GetService<ILunchMenuService>();
                             // delete meal from db and clear from lunch menu dishIds
-                            long mealId = long.Parse(callbackQuery.Data.Substring(callbackQuery.Data.IndexOf('_') + 1));
+                            long mealId = long.Parse(callbackQuery.Data.Substring(callbackQuery.Data.LastIndexOf('_') + 1));
                             _dishService.DeleteDishAndItsRelatingImg(mealId);
                             _lunchService.ClearDishIdFromLunchMenu(mealId);
                         }
                     }
 
-                    if(callbackQuery.Data.ToLower().StartsWith("selectmeal"))
+                    else if(callbackQuery.Data.ToLower().StartsWith("selectmeal"))
                     {
+                        DateTime lunchStartTime = DateTime.Now.Date.AddHours(_configuration.GetValue<int>("LunchTime:StartHour")).AddMinutes(_configuration.GetValue<int>("LunchTime:StartMinute"));
+                        if (callbackQuery.Message.Date.AddHours(5) < DateTime.Now.Date || (callbackQuery.Message.Date.AddHours(5) < lunchStartTime))
+                        {
+                            await _botClient.SendTextMessageAsync(
+                                chatId: callbackQuery.From.Id,
+                                "Ushbu buyurtmaning vaqti tugagan. Siz bugungi kundagi buyurtmalarni tanlay olasiz!"
+                                );
+                            return;
+                        }
+
                         using (var scope = _serviceProvider.CreateScope())
                         {
                             var _selectedMenuService = scope.ServiceProvider.GetService<ISelectedMenuService>();
 
-                            long mealId = long.Parse(callbackQuery.Data.Substring(callbackQuery.Data.IndexOf('_') + 1));
+                            long mealId = long.Parse(callbackQuery.Data.Substring(callbackQuery.Data.LastIndexOf('_') + 1));
                             // check first if employee has selected meal item today or not
                             if(_selectedMenuService.HasEmployeeSelectedMealToday(callbackQuery.From.Id))
                             {
@@ -111,13 +129,86 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
                                 return;
                             }
 
-                            _selectedMenuService.CreateOrUpdateSelectedMenuIfDeletedMeal(callbackQuery.From.Id, mealId);
-                            await _botClient.SendTextMessageAsync(
+                            Boolean result = _selectedMenuService.CreateOrUpdateSelectedMenuIfDeletedMeal(callbackQuery.From.Id, mealId);
+                            if(result)
+                            {
+                                await _botClient.SendTextMessageAsync(
                                 chatId: callbackQuery.From.Id,
                                 text: "Sizning tanlovingiz qabul qilindi!"
                                 );
+                            } 
+                            else
+                            {
+                                await _botClient.SendTextMessageAsync(
+                                    chatId: callbackQuery.From.Id,
+                                    text: "Tanlovingiz qabul qilinmadi.\nUshbu taom menyudan o'chirilgan bo'lishi mumkin!"
+                                    );
+                            }
+                            
+                        }
+
+                        return;
+                    }
+                   
+                    
+                    // MANAGER SELECT POSITION OF BOT USERS
+                    {
+                        if (callbackQuery.Data.ToLower().StartsWith(UserCommandMenus.EMPLOYEE_POS_INL))
+                        {
+                            HandleBotUserPositionByManagerCallback(callbackQuery, Employee.Position.EMPLOYEE);
+                        }
+
+                        else if (callbackQuery.Data.ToLower().StartsWith(UserCommandMenus.CATERING_MANAGER_POS_INL))
+                        {
+                            HandleBotUserPositionByManagerCallback(callbackQuery, Employee.Position.CATERING_MANAGER);
+                        }
+
+                        else if(callbackQuery.Data.ToLower().StartsWith(UserCommandMenus.MANAGER_POS_INL))
+                        {
+                            HandleBotUserPositionByManagerCallback(callbackQuery, Employee.Position.MANAGER);
                         }
                     }
+
+                    // MANAGER HAS GIVED PERMISSION YES/NO 
+                    {
+                        if(callbackQuery.Data.ToLower().StartsWith(UserCommandMenus.YES))
+                        {
+                            var chatID = long.Parse(callbackQuery.Data.Substring(callbackQuery.Data.LastIndexOf("_") + 1));
+
+                            using (var scope = _serviceProvider.CreateScope())
+                            {
+                                var _commonResponses = scope.ServiceProvider.GetService<CommonResponses>();
+
+                                await _botClient.SendTextMessageAsync(
+                                    chatId: chatID,
+                                    text: "Manager sizga tushlik uchun ruhsat berdi!"
+                                );
+
+                                await _botClient.SendTextMessageAsync(
+                                    chatId: callbackQuery.From.Id,
+                                    text: "Foydalanuvchiga ruhsat berildi."
+                                    );
+
+                                _commonResponses.DishListInlineResponse(chatID, DateTime.Now.DayOfWeek);
+                            }
+                        }
+
+                        else if(callbackQuery.Data.ToLower().StartsWith(UserCommandMenus.NO))
+                        {
+                            var chatID = long.Parse(callbackQuery.Data.Substring(callbackQuery.Data.LastIndexOf("_") + 1));
+                            await _botClient.SendTextMessageAsync(
+                                chatId: chatID,
+                                text: "Manager sizga tushlik uchun ruhsat bermadi afsus!"
+                                );
+
+                            await _botClient.SendTextMessageAsync(
+                                   chatId: callbackQuery.From.Id,
+                                   text: "Foydalanuvchiga ruhsat berilmadi."
+                                   );
+                        }
+                    }                    
+                    
+
                 }
             }
             
@@ -246,10 +337,32 @@ namespace hikvision_emp_card_face_telegram_bot.Bot
                 _botUserMenuInputStates[chatId] = state;
         }
 
-        public void completeStateIfGivenMessageCommand(long chatId)
+        public void CompleteStateIfGivenMessageCommand(long chatId)
         {
             if (_botUserMenuInputStates.ContainsKey(chatId))
                 _botUserMenuInputStates.Remove(chatId);
+        }
+
+        private async void HandleBotUserPositionByManagerCallback(CallbackQuery callbackQuery, Employee.Position position)
+        {
+            long ChatID = long.Parse(callbackQuery.Data.Substring(callbackQuery.Data.LastIndexOf("_") + 1));
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var _employeeService = scope.ServiceProvider.GetService<IEmployeeService>();
+                var dto = new EmployeeDTO { PositionEmp = position };
+                _employeeService.UpdateByChatID(ChatID, bot.State.RegistrationStates.EMPLOYEE_POSITION, ref dto);
+                await _botClient.SendTextMessageAsync(
+                    chatId: ChatID,
+                    text: "Sizga manager tomonidan pozitsiya belgilandi!\n" +
+                          $"Sizning pozitsiyasingiz bu - {position.ToString()}"
+                    );
+
+                await _botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: "Foydalanuvchiga ruxsat berildi!\n" + 
+                          $"Foydalanuvchi {dto.FirstName} {dto.LastName} ning pozitsiya bu - {position.ToString()}" 
+                    );
+            }
         }
     }
 }

@@ -10,6 +10,10 @@
 
         public long? DishId { get; set;}
 
+        public string? DishName { get; set; }
+
+        public decimal? DishPrice { get; set; }
+
         public decimal? DiscountPrice {get; set;}
 
         public decimal? DiscountPercent { get; set;}

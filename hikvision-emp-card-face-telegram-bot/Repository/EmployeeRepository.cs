@@ -43,6 +43,14 @@ namespace hikvision_emp_card_face_telegram_bot.Repository
             return _dbContext.Employees.ToList();
         }
 
+        public ICollection<Employee> GetEmployeesLateInWork(int remainderHour, int remainderMinute)
+        {
+            var now = DateTime.UtcNow;
+            var targetDate = now.Date.AddHours(remainderHour).AddMinutes(remainderMinute);
+            return _dbContext.Employees.Where(x => x.PositionEmp != Employee.Position.MANAGER &&
+                                                (x.VisitedDate == null || x.VisitedDate < now.Date || (x.VisitedDate >= targetDate))).ToList();
+        }
+
         public bool Save()
         {
             var saved = _dbContext.SaveChanges();

@@ -59,8 +59,9 @@ namespace hikvision_emp_card_face_telegram_bot.Data
                     v => JsonConvert.DeserializeObject<List<long>>(v)) // Deserialize JSON string back to List<long>
                 .HasColumnType("jsonb");
 
-            // Configuring SelectedMenuReport as a query type (not mapped to a table)
+            // Configuring Reports as a query type (not mapped to a table)
             modelBuilder.Entity<SelectedMenuReport>().HasNoKey().ToView(null); // This ensures it's not treated as a table
+            modelBuilder.Entity<SelectedMenuReportInMonth>().HasNoKey().ToView(null); // This ensures it's not treated as a table
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)

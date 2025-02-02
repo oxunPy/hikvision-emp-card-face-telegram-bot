@@ -14,6 +14,7 @@ using hikvision_emp_card_face_telegram_bot.Bot;
 using hikvision_emp_card_face_telegram_bot.Data.Report;
 using System.Text;
 using System.Net.Mail;
+using OfficeOpenXml;
 
 namespace hikvision_emp_card_face_telegram_bot.bot
 {
@@ -72,6 +73,10 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                         case UserCommandMenus.DAILY_ORDER_REPORT:
                             await HandleDailyReportManager(message);
                             return;
+
+                        case UserCommandMenus.MONTHLY_ORDER_REPORT:
+                            await HandleMonthlyReportManager(message);
+                            return;
                     }
                 }
 
@@ -93,6 +98,28 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                     }
                     return;
                 }
+
+
+                // handle late cause message 
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var _employeeService = scope.ServiceProvider.GetService<IEmployeeService>();
+                    var botUser = _employeeService.FindByChatID(message.Chat.Id);
+
+                    if (message.ReplyToMessage != null && message.ReplyToMessage.Text.Equals(string.Format(ConstantTextMessages.LATE_IN_WORK, botUser.FirstName, botUser.LastName)))
+                    {
+                        // send confirmation to the manager
+                        await _botClient.SendTextMessageAsync(_configuration.GetValue<long>("Manager:ChatId"),
+                                $"Bugun {botUser.FirstName} {botUser.LastName}ga ishga kech qolish eslatmasi berildi, Unga tushlik beriladimi? \n\n" +
+                                $"Uning xabari: {message.Text}",
+                                replyMarkup: UserCommandMenus.GetConfirmationMarkupInline(ChatID)
+                                );
+
+                        await _botClient.SendTextMessageAsync(ChatID,
+                                "Kech qolish sababingiz manager jo'natildi va uning tasdiqlashini kuting!");
+                    }
+                }
+                
             }
             catch (Exception ex)
             {
@@ -113,20 +140,107 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                 ICollection<SelectedMenuReport> selectedMenuReports = await _selectedMenuService.DailyReportForManager();
 
                 StringBuilder sb = new StringBuilder();
+                int count = 1;
                 foreach(var item in selectedMenuReports)
                 {
-                    sb.Append($"Dish: {item.DishName}, ");
-                    sb.Append($"Discount: {item.DiscountPercent}, ");
-
-                    sb.Append($"Emp: {item.EmployeeNames}\n");
+                    sb.Append($"{count++}. ");
+                    sb.Append($"Taom: {item.DishName}, ");
+                    sb.Append($"Narxi: {item.DishPrice}, ");
+                    sb.Append($"Chegirmali Narxi: {item.DiscountPrice}, ");
+                    sb.Append($"Shaxs: {item.EmployeeNames}\n");
                 }
                 if(sb.Length > 0)
                 {
+                    string text = "Bugungi kun uchun buyurtmalar hisoboti:\n\n";
                     await _botClient.SendTextMessageAsync(
                                 chatId: message.Chat.Id,
+                                text + 
                                 sb.ToString()
                             );
                 }
+                else
+                {
+                    string text = "Bugungi kun uchun hali buyurmalar yoq!";
+
+                    await _botClient.SendTextMessageAsync(
+                            chatId: message.Chat.Id,
+                            text
+                        );
+                }
+            }
+        }
+
+        private async Task HandleMonthlyReportManager(Message message)
+        {
+            await _botClient.SendTextMessageAsync(
+                               chatId: message.Chat.Id,
+                               "Bir oylik buyurtmalar hisoboti:\n\n"
+                           );
+
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var _selectedMenuService = scope.ServiceProvider.GetService<ISelectedMenuService>();
+                ICollection<SelectedMenuReportInMonth> selectedMenuReports = await _selectedMenuService.MonthlyReportForManager();
+
+                if (selectedMenuReports == null || selectedMenuReports.Count == 0)
+                {
+                    await _botClient.SendTextMessageAsync(
+                        chatId: message.Chat.Id,
+                        "30 kun mobaynida hali buyurtma bo'lmadi"
+                    );
+                }
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                string savePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "excel");
+                if (!Directory.Exists(savePath))
+                {
+                    Directory.CreateDirectory(savePath);
+                }
+
+                var filename = $"report_month{DateTime.Now:yyyy-mm-dd}.xlsx";
+                var filePath = Path.Combine(savePath, filename);
+
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("month");
+
+                    int shiftRow = 1;
+                    worksheet.Cells[shiftRow, 1].Value = "FirstName";
+                    worksheet.Cells[shiftRow, 2].Value = "LastName";
+                    worksheet.Cells[shiftRow, 3].Value = "Date";
+                    worksheet.Cells[shiftRow, 4].Value = "DishName";
+                    worksheet.Cells[shiftRow, 5].Value = "DishPrice";
+                    worksheet.Cells[shiftRow, 6].Value = "DiscountPrice";
+                    worksheet.Cells[shiftRow, 7].Value = "DiscountPercent";
+                    shiftRow++;
+
+                    for (int i = 0; i < selectedMenuReports.Count; i++)
+                    {
+                        worksheet.Cells[i + shiftRow, 1].Value = selectedMenuReports.ElementAt(i).FirstName;
+                        worksheet.Cells[i + shiftRow, 2].Value = selectedMenuReports.ElementAt(i).LastName;
+                        worksheet.Cells[i + shiftRow, 3].Value = selectedMenuReports.ElementAt(i).Date.Value.ToString("yyyy-MM-dd");
+                        worksheet.Cells[i + shiftRow, 4].Value = selectedMenuReports.ElementAt(i).DishName;
+                        worksheet.Cells[i + shiftRow, 5].Value = selectedMenuReports.ElementAt(i).DishPrice;
+                        worksheet.Cells[i + shiftRow, 6].Value = selectedMenuReports.ElementAt(i).DiscountPrice;
+                        worksheet.Cells[i + shiftRow, 7].Value = selectedMenuReports.ElementAt(i).DiscountPercent;
+
+                    }
+
+                    System.IO.File.WriteAllBytes(filePath, package.GetAsByteArray());
+                }
+
+                SendExcelFile(message.Chat.Id, filePath, filename);
+            }
+        }
+
+
+        private async Task SendExcelFile(long chatId, string filePath, string fileName)
+        {
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                var excelFile = InputFileStream.FromStream(stream, fileName);
+                await _botClient.SendDocumentAsync(chatId, excelFile, caption: "Bir oylik hisobot");
             }
         }
 
@@ -158,18 +272,32 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                     DateTime startDate = DateTime.Now.Date.AddHours(_configuration.GetValue<int>("LunchTime:StartHour"));
                     DateTime endDate = DateTime.Now.Date.AddHours(_configuration.GetValue<int>("LunchTime:EndHour")).AddMinutes(_configuration.GetValue<int>("LunchTime:EndMinute"));
 
-                    if (botUser.PositionEmp == Employee.Position.EMPLOYEE)
+                    if (botUser.PositionEmp != Employee.Position.FULL_ACCESS_UNLIMIT)
                     {
                         if (visitedDate >= startDate && visitedDate <= endDate)
                         {
                             if(botUser.VisitedDate == null)
                             {
-                                botUser.VisitedDate = DateTime.UtcNow;
-                                _employeeService.UpdateBotUserVisitDate(botUser);
+                                // botUser.VisitedDate = DateTime.UtcNow;
+                                // _employeeService.UpdateBotUserVisitDate(botUser);
+                                await _botClient.SendTextMessageAsync(
+                                    message.Chat.Id,
+                                    "Siz Face-ID orqali ro'yhatdan o'tishingiz kerak!"
+                                    );
+                                return;
                             }
-                            await _commonResponses.DishListInlineResponse(message.Chat.Id, DayOfWeek.Monday);
+                            await _commonResponses.DishListInlineResponse(message.Chat.Id, DateTime.Now.DayOfWeek);
                         }
-                    }
+                        else
+                        {
+                            await _botClient.SendTextMessageAsync(
+                                message.Chat.Id,
+                                "Siz vaqtida buyurtma berishga ulgarmadingiz! " +
+                                $"({_configuration.GetValue<string>("LunchTime:StartHour")}:{_configuration.GetValue<string>("LunchTime:StartMinute")}, " +
+                                $"{_configuration.GetValue<string>("LunchTime:EndHour")}:{_configuration.GetValue<string>("LunchTime:EndMinute")})"
+                                );
+                        }
+                    }  
                     else
                     {
                         if (botUser.VisitedDate == null)
@@ -177,7 +305,7 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                             botUser.VisitedDate = DateTime.UtcNow;
                             _employeeService.UpdateBotUserVisitDate(botUser);
                         }
-                        await _commonResponses.DishListInlineResponse(message.Chat.Id, DayOfWeek.Monday);
+                        await _commonResponses.DishListInlineResponse(message.Chat.Id, DateTime.Now.DayOfWeek);
                     }
 
                 }
@@ -235,29 +363,12 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                         return;
                     }
 
-                    // Create an inline keyboard with the days of the week
-                    var inlineKeyboard = new InlineKeyboardMarkup(new[]
-                    {
-                        new [] // Row 1
-                        {
-                            InlineKeyboardButton.WithCallbackData("Monday", "Monday"),
-                            InlineKeyboardButton.WithCallbackData("Tuesday", "Tuesday"),
-                        },
-                        new [] // Row 2
-                        {
-                            InlineKeyboardButton.WithCallbackData("Wednesday", "Wednesday"),
-                            InlineKeyboardButton.WithCallbackData("Thursday", "Thursday"),
-                        },
-                        new [] // Row 3
-                        {
-                            InlineKeyboardButton.WithCallbackData("Friday", "Friday"),
-                        },
-                    });
+
 
                     _botClient.SendTextMessageAsync(
                         chatId: message.Chat.Id,
                         text: "Hafta kunini tanglang!",
-                        replyMarkup: inlineKeyboard
+                        replyMarkup: UserCommandMenus.GetWeekDaysInlineMarkup()
                         );
                 }
 
@@ -299,8 +410,9 @@ namespace hikvision_emp_card_face_telegram_bot.bot
 
             using (var scope = _serviceProvider.CreateScope())
             {
+
                 var _employeeService = scope.ServiceProvider.GetRequiredService<IEmployeeService>();
-                EmployeeService.CodeResultRegistration? codeResult = _employeeService.RegisterByChatID(ChatID);
+                EmployeeService.CodeResultRegistration? codeResult = _employeeService.RegisterByChatID(ChatID, out string firstName, out string lastName);
 
                 if (codeResult == null || codeResult.Equals(EmployeeService.CodeResultRegistration.FIRST_NAME))
                 {
@@ -331,20 +443,6 @@ namespace hikvision_emp_card_face_telegram_bot.bot
                         );
                 }
 
-                else if (codeResult.Equals(EmployeeService.CodeResultRegistration.EMPLOYEE_POSITION))
-                {
-                    if (!_botUserRegistrationStates.ContainsKey(ChatID))
-                        _botUserRegistrationStates.Add(ChatID, RegistrationStates.EMPLOYEE_POSITION);
-                    else
-                        _botUserRegistrationStates[ChatID] = RegistrationStates.EMPLOYEE_POSITION;
-
-                    await _botClient.SendTextMessageAsync(
-                        chatId: ChatID,
-                        text: "Pozitsiyangizni kiriting!",
-                        replyMarkup: _registerHandler.GetEmployeePositionMarkup()
-                        );
-                }
-
                 else if (codeResult.Equals(EmployeeService.CodeResultRegistration.FACE_UPLOAD))
                 {
                     if (!_botUserRegistrationStates.ContainsKey(ChatID))
@@ -354,9 +452,38 @@ namespace hikvision_emp_card_face_telegram_bot.bot
 
                     await _botClient.SendTextMessageAsync(
                         chatId: ChatID,
-                        text: "Yuz rasmingizni kiriting!",
+                        text: "Yuz rasmingizni kiriting! (maximum = 200kb)",
                         replyMarkup: new ReplyKeyboardRemove()
                         );
+                }
+
+                else if (codeResult.Equals(EmployeeService.CodeResultRegistration.EMPLOYEE_POSITION))
+                {
+                    if (!_botUserRegistrationStates.ContainsKey(ChatID))
+                        _botUserRegistrationStates.Add(ChatID, RegistrationStates.EMPLOYEE_POSITION);
+                    else
+                        _botUserRegistrationStates[ChatID] = RegistrationStates.EMPLOYEE_POSITION;
+
+
+                    if(ChatID != _configuration.GetValue<long>("Manager:ChatId"))
+                    {
+                        await _botClient.SendTextMessageAsync(
+                        chatId: ChatID,
+                        text: "Pozitsiyangizni manager orqali kiritiladi.\n" +
+                              "Iltimos kuting!"
+                        );
+
+                        await _botClient.SendTextMessageAsync(
+                            chatId: _configuration.GetValue<long>("Manager:ChatId"),
+                            text: $"{firstName} {lastName} ro'yhatdan o'tdi, iltimos uning pozitsiyasini belgilang!",
+                            replyMarkup: UserCommandMenus.GetPositionMarkupInline(ChatID)
+                            );
+                    }
+                    else
+                    {
+                        var dto = new EmployeeDTO { PositionEmp = Employee.Position.MANAGER };
+                        _employeeService.UpdateByChatID(ChatID, RegistrationStates.EMPLOYEE_POSITION, ref dto);
+                    }
                 }
 
                 else if (codeResult.Equals(EmployeeService.CodeResultRegistration.COMPLETE))

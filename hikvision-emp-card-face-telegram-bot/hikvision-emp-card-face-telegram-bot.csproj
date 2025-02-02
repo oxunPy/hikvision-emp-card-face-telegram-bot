@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="EPPlus" Version="7.5.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
       <PrivateAssets>all</PrivateAssets>
@@ -54,6 +55,7 @@
   <ItemGroup>
     <Folder Include="wwwroot\dishes\" />
     <Folder Include="wwwroot\faces\" />
+    <Folder Include="wwwroot\excel\" />
   </ItemGroup>
 
 </Project>

@@ -22,6 +22,10 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
         [ForeignKey("DishId")]
         public Dish? Dish { get; set; }
 
+        public string? DishName { get; set; }
+
+        public decimal? DishPrice { get; set; }
+
         public decimal? DiscountPrice { get; set; }
 
         public decimal? DiscountPercent { get; set; }   
@@ -36,6 +40,8 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
                 EmployeeId = this.EmployeeId,
                 Date = this.Date,
                 DishId = this.DishId,
+                DishName = this.DishName,
+                DishPrice = this.DishPrice,
                 DiscountPercent = this.DiscountPercent,
                 DiscountPrice = this.DiscountPrice
             };

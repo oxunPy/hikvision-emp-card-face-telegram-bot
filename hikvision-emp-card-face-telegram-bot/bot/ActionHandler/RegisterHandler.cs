@@ -1,6 +1,9 @@
 ﻿using hikvision_emp_card_face_telegram_bot.bot.State;
+using hikvision_emp_card_face_telegram_bot.Bot;
+using hikvision_emp_card_face_telegram_bot.Dto;
 using hikvision_emp_card_face_telegram_bot.Entity;
 using hikvision_emp_card_face_telegram_bot.Service;
+using Microsoft.Extensions.Configuration;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Telegram.Bot;
@@ -13,11 +16,13 @@ namespace hikvision_emp_card_face_telegram_bot.bot.ActionHandler
     {
         private readonly TelegramBotClient _botClient;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IConfiguration _configuration;
 
-        public RegisterHandler(TelegramBotClient botClient, IServiceProvider serviceProvider)
+        public RegisterHandler(TelegramBotClient botClient, IServiceProvider serviceProvider, IConfiguration configuration)
         {
             _botClient = botClient;
             _serviceProvider = serviceProvider;
+            _configuration = configuration;
         }
 
         public async Task HandleRegistrationAsync(Message message, RegistrationStates state, CancellationToken cancellationToken)
@@ -26,16 +31,14 @@ namespace hikvision_emp_card_face_telegram_bot.bot.ActionHandler
             using (var scope = _serviceProvider.CreateScope())
             {
                 var _employeeService = scope.ServiceProvider.GetService<IEmployeeService>();
-
+                EmployeeDTO dto = new Dto.EmployeeDTO { };
                 if (message != null)
                 {
                     switch (state)
                     {
                         case RegistrationStates.FIRST_NAME:
-                            _employeeService.UpdateByChatID(message.Chat.Id, RegistrationStates.FIRST_NAME, new Dto.EmployeeDTO
-                            {
-                                FirstName = message.Text
-                            });
+                            dto.FirstName = message.Text;
+                            _employeeService.UpdateByChatID(message.Chat.Id, RegistrationStates.FIRST_NAME, ref dto);
 
                             await _botClient.SendTextMessageAsync(
                                 chatId: message.Chat.Id,
@@ -44,58 +47,48 @@ namespace hikvision_emp_card_face_telegram_bot.bot.ActionHandler
 
                             break;
                         case RegistrationStates.LAST_NAME:
-                            _employeeService.UpdateByChatID(message.Chat.Id, RegistrationStates.LAST_NAME, new Dto.EmployeeDTO
-                            {
-                                LastName = message.Text
-                            });
+                            dto.LastName = message.Text;
+                            _employeeService.UpdateByChatID(message.Chat.Id, RegistrationStates.LAST_NAME, ref dto);
 
                             await _botClient.SendTextMessageAsync(
                                 chatId: message.Chat.Id,
-                                text: "Pozitsiyangizni kiriting!",
-                                replyMarkup: GetEmployeePositionMarkup()
-                                );
-
-                            break;
-
-                        case RegistrationStates.EMPLOYEE_POSITION:
-                            _employeeService.UpdateByChatID(message.Chat.Id, RegistrationStates.EMPLOYEE_POSITION, new Dto.EmployeeDTO
-                            {
-                                PositionEmp = (Employee.Position)Enum.Parse(typeof(Employee.Position), message.Text)
-                            });
-
-                            if (Enum.Parse(typeof(Employee.Position), message.Text).Equals(Employee.Position.EMPLOYEE))
-                            {
-                                await _botClient.SendTextMessageAsync(
-                                chatId: message.Chat.Id,
                                 text: "Yuz rasmingizni kiriting! (maximum = 200kb)"
                                 );
-                            }
-
-                            else
-                            {
-                                await _botClient.SendTextMessageAsync(
-                                    chatId: message.Chat.Id,
-                                    text: "Foydalanuvchi muvaffaqiyatli yaratildi!",
-                                    replyMarkup: new ReplyKeyboardRemove()
-                                    );
-                            }
 
                             break;
-
 
                         case RegistrationStates.FACE_UPLOAD:
                             if (message.Photo != null && message.Photo.Length > 0)
                             {
                                 string filePath = await SaveUploadedPhoto(message, cancellationToken);
-                                _employeeService.UpdateByChatID(message.Chat.Id, RegistrationStates.FACE_UPLOAD, new Dto.EmployeeDTO
-                                {
-                                    FaceImagePath = filePath
-                                });
+                                dto.FaceImagePath = filePath;
+                                _employeeService.UpdateByChatID(message.Chat.Id, RegistrationStates.FACE_UPLOAD, ref dto);
 
                                 await _botClient.SendTextMessageAsync(
                                     chatId: message.Chat.Id,
                                     text: "Foydalanuvchi muvaffaqiyatli yaratildi!"
                                     );
+
+                                var ChatID = message.Chat.Id;
+                                if (ChatID != _configuration.GetValue<long>("Manager:ChatId"))
+                                {
+                                    await _botClient.SendTextMessageAsync(
+                                    chatId: ChatID,
+                                    text: "Pozitsiyangizni manager orqali kiritiladi.\n" +
+                                    "Iltimos kuting!"
+                                    );
+
+                                    await _botClient.SendTextMessageAsync(
+                                        chatId: _configuration.GetValue<long>("Manager:ChatId"),
+                                        text: $"{dto.FirstName} {dto.LastName} ro'yhatdan o'tdi, iltimos uning pozitsiyasini belgilang!",
+                                        replyMarkup: UserCommandMenus.GetPositionMarkupInline(ChatID)
+                                        );
+                                }
+                                else
+                                {
+                                    dto.PositionEmp = Employee.Position.MANAGER;
+                                    _employeeService.UpdateByChatID(ChatID, RegistrationStates.EMPLOYEE_POSITION, ref dto);
+                                }
 
                                 _employeeService.CreateNewHikiEmployee(message.Chat.Id);
                                 _employeeService.SendFaceData(message.Chat.Id, filePath);

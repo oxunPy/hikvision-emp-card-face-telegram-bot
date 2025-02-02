@@ -11,7 +11,8 @@ namespace hikvision_emp_card_face_telegram_bot.Entity
         {
             EMPLOYEE,
             MANAGER,
-            CATERING_MANAGER
+            CATERING_MANAGER,
+            FULL_ACCESS_UNLIMIT
         }
 
         [Key]

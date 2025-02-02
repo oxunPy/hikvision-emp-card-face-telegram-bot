@@ -6,8 +6,10 @@ using hikvision_emp_card_face_telegram_bot.Dto;
 using hikvision_emp_card_face_telegram_bot.Entity;
 using hikvision_emp_card_face_telegram_bot.Interfaces;
 using hikvision_emp_card_face_telegram_bot.Repository;
+using System.Collections.Generic;
 using System.Data;
 using System.Net.Http.Headers;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
@@ -68,37 +70,48 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             return _mapper.Map<EmployeeDTO>(_employeeRepository.FindByTelegramChatId(chatID));
         }
 
-        public CodeResultRegistration? RegisterByChatID(long chatId)
+        public CodeResultRegistration? RegisterByChatID(long chatId, out string firstName, out string lastName)
         {
             var employee = _employeeRepository.FindByTelegramChatId(chatId);
             
             if (employee == null)
             {
+                firstName = null;
+                lastName = null;
                 return null;
             }
             else if (employee.FirstName == null)
             {
+                firstName = null;
+                lastName = null;
                 return CodeResultRegistration.FIRST_NAME;
             }
 
             else if (employee.LastName == null)
             {
+                firstName = employee.FirstName;
+                lastName = null;
                 return CodeResultRegistration.LAST_NAME;
             }
-
-            else if (employee.PositionEmp == null)
+            else if (employee.FaceImagePath == null)
             {
-                return CodeResultRegistration.EMPLOYEE_POSITION;
-            }
-            else if (employee.FaceImagePath == null && employee.PositionEmp.Equals(Employee.Position.EMPLOYEE))
-            {
+                firstName = employee.FirstName;
+                lastName = employee.LastName;
                 return CodeResultRegistration.FACE_UPLOAD;
             }
+            else if (employee.PositionEmp == null)
+            {
+                firstName = employee.FirstName;
+                lastName = employee.LastName;
+                return CodeResultRegistration.EMPLOYEE_POSITION;
+            }
 
+            firstName = employee.FirstName;
+            lastName = employee.LastName;
             return CodeResultRegistration.COMPLETE;
         }
 
-        public bool UpdateByChatID(long chatId, RegistrationStates state, EmployeeDTO dto)
+        public bool UpdateByChatID(long chatId, RegistrationStates state, ref EmployeeDTO dto)
         {
             if(state == null || dto == null)
                 return false;
@@ -122,6 +135,8 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
                     break;
             }
 
+            dto.FirstName = employee.FirstName;
+            dto.LastName = employee.LastName;
             return _employeeRepository.UpdateEmployee(employee);
         }
 
@@ -438,6 +453,19 @@ namespace hikvision_emp_card_face_telegram_bot.Service.Impl
             entity.PositionEmp = dto.PositionEmp;
             bool result = _employeeRepository.UpdateEmployee(entity);
             return result ? _mapper.Map<EmployeeDTO>(entity) : null;
+        }
+
+        public ICollection<EmployeeDTO> findAllLateInWorkWorkers(int remainderHour, int remainderMinute)
+        {
+            if (remainderHour== null || remainderMinute == null)
+            {
+                return new List<EmployeeDTO>();
+            }
+
+            ICollection<Employee> employees = _employeeRepository.GetEmployeesLateInWork(remainderHour, remainderMinute);
+
+            // Add your logic here to find all late in work workers
+            return _mapper.Map<List<EmployeeDTO>>(employees);
         }
     }   
 }

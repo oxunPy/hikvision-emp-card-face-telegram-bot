@@ -11,5 +11,6 @@ namespace hikvision_emp_card_face_telegram_bot.Service
         bool DeleteMyOrder(long chatId);
 
         Task<ICollection<SelectedMenuReport>> DailyReportForManager();
+        Task<ICollection<SelectedMenuReportInMonth>> MonthlyReportForManager();
     }
 }

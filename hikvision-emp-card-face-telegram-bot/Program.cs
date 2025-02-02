@@ -54,6 +54,7 @@ builder.Services.AddSingleton<MenuInputHandler>();
 builder.Services.AddSingleton<ITerminalConfigurationService, TerminalConfigurationService>();
 
 builder.Services.AddHostedService<SchedulingHikvisionStartup>();
+builder.Services.AddHostedService<SchedulingLateUserInWork>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

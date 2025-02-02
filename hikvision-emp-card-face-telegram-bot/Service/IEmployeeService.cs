@@ -13,9 +13,9 @@ namespace hikvision_emp_card_face_telegram_bot.Service
 
         EmployeeDTO FindByChatID(long chatId);
 
-        EmployeeService.CodeResultRegistration? RegisterByChatID(long chatId);
+        EmployeeService.CodeResultRegistration? RegisterByChatID(long chatId, out string firstName, out string lastName);
 
-        bool UpdateByChatID(long chatId, RegistrationStates state, EmployeeDTO dto);
+        bool UpdateByChatID(long chatId, RegistrationStates state, ref EmployeeDTO dto);
 
         bool RemoveImgInCaseErrorRecognize(long chatID);
 
@@ -24,5 +24,7 @@ namespace hikvision_emp_card_face_telegram_bot.Service
         void SendFaceData(long chatId, string filePath);
 
         bool OrderedTodaysMenu(long chatId);
+
+        ICollection<EmployeeDTO> findAllLateInWorkWorkers(int remainderHour, int remainderMinute);
     }
 }

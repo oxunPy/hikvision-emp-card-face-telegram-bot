@@ -6,6 +6,8 @@ namespace hikvision_emp_card_face_telegram_bot.Interfaces
     {
         ICollection<Employee> GetEmployees();
 
+        ICollection<Employee> GetEmployeesLateInWork(int remainderHour, int remainderMinute);
+
         Employee? GetEmployee(long id);
 
         bool EmployeeExists(long id);
